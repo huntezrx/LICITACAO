@@ -1,0 +1,1132 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LicitaPro – Sistema de Licitações</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet" />
+<style>
+:root{
+  --navy:#0f1f3d;--navy2:#162445;--navy3:#1e3260;
+  --blue:#2563eb;--blue2:#3b82f6;
+  --green:#059669;--green2:#d1fae5;
+  --red:#dc2626;--red2:#fee2e2;
+  --yellow:#d97706;--yellow2:#fef3c7;
+  --gray50:#f8fafc;--gray100:#f1f5f9;--gray200:#e2e8f0;
+  --gray400:#94a3b8;--gray500:#64748b;--gray700:#334155;--gray900:#0f172a;
+  --r:12px;--r2:8px;
+  --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.06);
+  --shm:0 4px 6px rgba(0,0,0,.07),0 2px 4px rgba(0,0,0,.06);
+  --sbl:260px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:15px}
+body{background:var(--gray100);font-family:'Inter',sans-serif;color:var(--gray900)}
+
+/* ── Sidebar ── */
+#sidebar{
+  position:fixed;inset:0 auto 0 0;width:var(--sbl);
+  background:var(--navy);display:flex;flex-direction:column;
+  z-index:100;transition:transform .25s;
+}
+.sb-brand{display:flex;align-items:center;gap:12px;padding:20px 18px 16px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sb-logo{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--blue2),var(--blue));
+  display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;flex-shrink:0}
+.sb-brand h1{font-size:.9rem;font-weight:800;color:#fff;letter-spacing:-.01em}
+.sb-brand span{font-size:.68rem;color:rgba(255,255,255,.4);display:block;margin-top:1px}
+.sb-nav{flex:1;overflow-y:auto;padding:8px 10px}
+.sb-nav::-webkit-scrollbar{width:3px}
+.sb-nav::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:2px}
+.sb-sec{font-size:.62rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.3);padding:14px 8px 5px;margin-top:2px}
+.sb-link{
+  display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--r2);
+  color:rgba(255,255,255,.65);text-decoration:none;font-size:.84rem;font-weight:500;
+  transition:background .15s,color .15s;position:relative;cursor:pointer;
+}
+.sb-link i{font-size:.95rem;flex-shrink:0;width:20px;text-align:center}
+.sb-link:hover{background:rgba(255,255,255,.08);color:#fff}
+.sb-link.active{background:rgba(37,99,235,.22);color:#fff}
+.sb-link.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--blue2);border-radius:0 3px 3px 0}
+.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px}
+.sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--blue2),#8b5cf6);
+  display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:800;color:#fff;flex-shrink:0}
+.sb-foot .nm{font-size:.78rem;color:rgba(255,255,255,.7);font-weight:500}
+
+/* ── Layout ── */
+#main{margin-left:var(--sbl);display:flex;flex-direction:column;min-height:100vh}
+#topbar{
+  position:sticky;top:0;z-index:50;background:#fff;
+  border-bottom:1px solid var(--gray200);padding:0 24px;
+  height:58px;display:flex;align-items:center;gap:12px
+}
+.tbar-title{font-size:.98rem;font-weight:800;color:var(--gray900);flex:1}
+.content{padding:22px}
+
+/* ── KPI grid ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px}
+.kpi-card{
+  background:#fff;border-radius:var(--r);box-shadow:var(--sh);
+  border:1px solid var(--gray200);padding:18px 20px;
+  display:flex;align-items:flex-start;gap:13px;
+  transition:box-shadow .2s,transform .18s;
+}
+.kpi-card:hover{box-shadow:var(--shm);transform:translateY(-1px)}
+.kpi-ic{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;flex-shrink:0}
+.kpi-b .kl{font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray500);margin-bottom:3px}
+.kpi-b .kv{font-size:1.35rem;font-weight:800;letter-spacing:-.02em;color:var(--gray900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi-b .ks{font-size:.7rem;color:var(--gray400);margin-top:2px}
+.pos{color:var(--green)!important}
+.neg{color:var(--red)!important}
+
+/* ── Card ── */
+.card{background:#fff;border-radius:var(--r);box-shadow:var(--sh);border:1px solid var(--gray200);overflow:hidden}
+.card+.card{margin-top:16px}
+.ch{padding:14px 18px;border-bottom:1px solid var(--gray200);display:flex;align-items:center;justify-content:space-between;gap:10px}
+.ch h2{font-size:.88rem;font-weight:700;color:var(--gray900);display:flex;align-items:center;gap:7px}
+.ch h2 i{color:var(--blue)}
+.cb{padding:18px}
+
+/* ── Table ── */
+.tbl{width:100%;border-collapse:collapse;font-size:.82rem}
+.tbl thead tr{border-bottom:2px solid var(--gray200)}
+.tbl th{padding:9px 13px;text-align:left;font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--gray500);white-space:nowrap}
+.tbl td{padding:11px 13px;color:var(--gray700);vertical-align:middle}
+.tbl tbody tr{border-bottom:1px solid var(--gray100);transition:background .1s}
+.tbl tbody tr:last-child{border-bottom:none}
+.tbl tbody tr:hover{background:var(--gray50)}
+.tbl tfoot tr{border-top:2px solid var(--gray200);background:var(--gray50)}
+.tbl tfoot td{font-weight:700;padding:10px 13px}
+.tr{text-align:right}.tc{text-align:center}
+.row-warn td{background:#fff8f8!important}
+
+/* ── Badge ── */
+.bdg{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:99px;font-size:.68rem;font-weight:700;letter-spacing:.02em;white-space:nowrap}
+.bdg-e{background:var(--green2);color:#065f46}
+.bdg-p{background:var(--yellow2);color:#92400e}
+.bdg-f{background:var(--red2);color:#991b1b}
+.bdg-pg{background:var(--green2);color:#065f46}
+.bdg-pn{background:var(--yellow2);color:#92400e}
+.bdg-ca{background:var(--gray100);color:var(--gray500)}
+.bdg-ag{background:#dbeafe;color:#1e40af}
+.bdg-ga{background:var(--green2);color:#065f46}
+.bdg-pe{background:var(--red2);color:#991b1b}
+.bdg-pt{background:#ede9fe;color:#5b21b6}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 15px;border-radius:var(--r2);
+  font-size:.82rem;font-weight:600;cursor:pointer;border:none;text-decoration:none;
+  transition:all .15s;white-space:nowrap;font-family:inherit}
+.btn i{font-size:.85rem}
+.btn-primary{background:var(--blue);color:#fff}
+.btn-primary:hover{background:#1d4ed8;color:#fff}
+.btn-success{background:var(--green);color:#fff}
+.btn-success:hover{background:#047857;color:#fff}
+.btn-danger{background:var(--red);color:#fff}
+.btn-danger:hover{background:#b91c1c;color:#fff}
+.btn-ghost{background:transparent;color:var(--gray500);border:1px solid var(--gray200)}
+.btn-ghost:hover{background:var(--gray100);color:var(--gray700)}
+.btn-sm{padding:5px 11px;font-size:.77rem}
+.btn-xs{padding:3px 8px;font-size:.72rem}
+.bic{width:30px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;
+  border-radius:var(--r2);font-size:.82rem;cursor:pointer;border:1px solid var(--gray200);
+  background:#fff;color:var(--gray500);transition:all .15s}
+.bic:hover{background:var(--gray100);color:var(--gray900)}
+.bic.d:hover{background:var(--red2);color:var(--red);border-color:var(--red2)}
+.bic.s:hover{background:var(--green2);color:var(--green);border-color:var(--green2)}
+.act{display:flex;gap:5px;align-items:center}
+
+/* ── Search ── */
+.srch{display:flex;align-items:center;gap:8px;background:var(--gray100);border:1.5px solid var(--gray200);
+  border-radius:var(--r2);padding:7px 11px;width:300px;transition:border-color .15s}
+.srch:focus-within{border-color:var(--blue);background:#fff}
+.srch i{color:var(--gray400);font-size:.88rem;flex-shrink:0}
+.srch input{border:none;background:transparent;outline:none;font-size:.83rem;color:var(--gray900);width:100%;font-family:inherit}
+.srch input::placeholder{color:var(--gray400)}
+
+/* ── Filter tabs ── */
+.ftabs{display:flex;gap:3px;background:var(--gray100);padding:3px;border-radius:9px}
+.ftab{padding:5px 12px;border-radius:7px;font-size:.76rem;font-weight:600;cursor:pointer;
+  border:none;background:transparent;color:var(--gray500);transition:all .15s;font-family:inherit}
+.ftab:hover,.ftab.active{background:#fff;color:var(--gray900);box-shadow:var(--sh)}
+
+/* ── Empty state ── */
+.empty{padding:52px 24px;text-align:center}
+.empty i{font-size:2.2rem;color:var(--gray200);display:block;margin-bottom:14px}
+.empty h3{font-size:.95rem;color:var(--gray500);margin-bottom:6px;font-weight:600}
+.empty p{font-size:.8rem;color:var(--gray400);margin-bottom:18px}
+
+/* ── Detail header ── */
+.dh{background:linear-gradient(135deg,var(--navy) 0%,var(--navy3) 100%);border-radius:var(--r);
+  padding:20px 24px;margin-bottom:18px;color:#fff}
+.dh-num{font-size:1.3rem;font-weight:800;letter-spacing:-.02em;margin-bottom:3px}
+.dh-sub{font-size:.8rem;color:rgba(255,255,255,.55)}
+.dh-meta{display:flex;gap:22px;margin-top:14px;flex-wrap:wrap}
+.dh-f .dl{font-size:.63rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:2px}
+.dh-f .dv{font-size:.85rem;font-weight:600;color:rgba(255,255,255,.9)}
+
+/* ── Summary bar ── */
+.sbar{display:flex;border-radius:var(--r);overflow:hidden;border:1px solid var(--gray200);margin-bottom:18px}
+.si{flex:1;padding:13px 16px;background:#fff;border-right:1px solid var(--gray200)}
+.si:last-child{border-right:none}
+.si .sl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--gray400);margin-bottom:2px}
+.si .sv{font-size:1.05rem;font-weight:800;letter-spacing:-.02em}
+
+/* ── Forms ── */
+.fs{background:#fff;border-radius:var(--r);border:1px solid var(--gray200);box-shadow:var(--sh);margin-bottom:18px}
+.fsh{padding:14px 20px;border-bottom:1px solid var(--gray200)}
+.fsh h3{font-size:.86rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.fsh h3 i{color:var(--blue)}
+.fsb{padding:20px}
+.fg{display:grid;gap:14px}
+.fg2{grid-template-columns:repeat(2,1fr)}
+.fg3{grid-template-columns:repeat(3,1fr)}
+.fg4{grid-template-columns:repeat(4,1fr)}
+label.lbl{display:block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray500);margin-bottom:5px}
+.req{color:var(--red);margin-left:2px}
+.fc,.fsel{width:100%;padding:9px 12px;font-size:.85rem;border:1.5px solid var(--gray200);border-radius:var(--r2);
+  background:#fff;color:var(--gray900);outline:none;transition:border-color .15s,box-shadow .15s;font-family:inherit}
+.fc:focus,.fsel:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.fc.ro{background:var(--gray50);color:var(--gray500);cursor:default}
+textarea.fc{resize:vertical;min-height:78px}
+.rg{display:flex;gap:14px;flex-wrap:wrap}
+.ro-opt{display:flex;align-items:center;gap:6px;cursor:pointer}
+.ro-opt input{accent-color:var(--blue);width:15px;height:15px}
+.ro-opt span{font-size:.84rem;font-weight:500;color:var(--gray700)}
+
+/* ── Calc preview ── */
+.calc{background:var(--gray50);border:1.5px solid var(--gray200);border-radius:var(--r2);
+  padding:13px 16px;display:flex;gap:20px;align-items:center;flex-wrap:wrap;margin-top:2px}
+.cc .ccl{font-size:.64rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--gray400);margin-bottom:1px}
+.cc .ccv{font-size:.98rem;font-weight:800}
+.sep{color:var(--gray300);font-size:1.1rem}
+.alert-custo{background:var(--red2);color:var(--red);padding:4px 11px;border-radius:7px;
+  font-size:.72rem;font-weight:700;display:none;align-items:center;gap:5px;margin-left:auto}
+.alert-custo.show{display:flex}
+
+/* ── Modal ── */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.52);display:none;align-items:center;
+  justify-content:center;z-index:200;padding:14px}
+.mo.open{display:flex}
+.mb{background:#fff;border-radius:16px;box-shadow:0 20px 40px rgba(0,0,0,.15);
+  width:100%;max-width:520px;overflow:hidden;animation:fu .2s ease}
+.mb.lg{max-width:760px}
+@keyframes fu{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.mh{padding:16px 20px;border-bottom:1px solid var(--gray200);display:flex;align-items:center;justify-content:space-between}
+.mh h3{font-size:.92rem;font-weight:700;display:flex;align-items:center;gap:7px}
+.mbc{padding:20px}
+.mft{padding:13px 20px;border-bottom:0;border-top:1px solid var(--gray200);display:flex;justify-content:flex-end;gap:8px}
+.x-btn{background:none;border:none;cursor:pointer;color:var(--gray500);font-size:1rem;padding:4px;border-radius:6px;transition:background .15s}
+.x-btn:hover{background:var(--gray100)}
+
+/* ── Toolbar ── */
+.tb{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+
+/* ── Alert ── */
+.al{padding:11px 15px;border-radius:var(--r2);font-size:.82rem;display:flex;align-items:center;
+  gap:9px;margin-bottom:14px;animation:fu .2s ease}
+.al-s{background:var(--green2);color:#065f46;border:1px solid #a7f3d0}
+.al-w{background:var(--yellow2);color:#92400e;border:1px solid #fcd34d}
+.al-d{background:var(--red2);color:#991b1b;border:1px solid #fca5a5}
+.al-x{margin-left:auto;cursor:pointer;background:none;border:none;color:inherit;font-size:.95rem}
+
+/* ── Grid layouts ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.gch{display:grid;grid-template-columns:1fr 360px;gap:16px;margin-bottom:16px}
+
+/* ── Responsive ── */
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.gch{grid-template-columns:1fr}}
+@media(max-width:900px){.fg3,.fg4{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:768px){
+  #sidebar{transform:translateX(-100%)}
+  #sidebar.open{transform:translateX(0)}
+  #main{margin-left:0}
+  .content{padding:14px}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+  .sbar{flex-direction:column}
+  .si{border-right:none;border-bottom:1px solid var(--gray200)}
+  .g2,.g3,.fg2,.fg3,.fg4{grid-template-columns:1fr}
+  .srch{width:100%}
+  .tb{gap:8px}
+}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--gray200);border-radius:3px}
+</style>
+</head>
+<body>
+
+<!-- ── Sidebar ───────────────────────────────── -->
+<aside id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-logo"><i class="bi bi-file-earmark-text-fill"></i></div>
+    <div><h1>LicitaPro</h1><span>Sistema de Licitações</span></div>
+  </div>
+  <nav class="sb-nav">
+    <a class="sb-link" data-view="dashboard"><i class="bi bi-grid-1x2-fill"></i> Dashboard</a>
+    <div class="sb-sec">Contratos</div>
+    <a class="sb-link" data-view="empenhos"><i class="bi bi-receipt"></i> Empenhos</a>
+    <div class="sb-sec">Licitações</div>
+    <a class="sb-link" data-view="pregoes"><i class="bi bi-calendar-week-fill"></i> Agenda de Pregões</a>
+    <div class="sb-sec">Financeiro</div>
+    <a class="sb-link" data-view="financeiro"><i class="bi bi-cash-stack"></i> Financeiro</a>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-av">V</div>
+    <div class="nm">Victor</div>
+  </div>
+</aside>
+
+<!-- ── Main ──────────────────────────────────── -->
+<div id="main">
+  <header id="topbar">
+    <button class="bic" id="sb-toggle" style="display:none"><i class="bi bi-list"></i></button>
+    <span class="tbar-title" id="tbar-title">Dashboard</span>
+    <div id="tbar-actions" style="display:flex;gap:8px;align-items:center"></div>
+  </header>
+  <main class="content">
+    <div id="flash-area"></div>
+    <div id="app"></div>
+  </main>
+</div>
+
+<!-- ── Modals ─────────────────────────────────── -->
+<div id="modal-area"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script>
+'use strict';
+
+// ══════════════════════════════════════════════════
+// DATA STORE
+// ══════════════════════════════════════════════════
+const DB = (() => {
+  const g = (k, d=[]) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; }};
+  const s = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+  const crud = key => ({
+    all: () => g(key),
+    find: id => g(key).find(r => r.id === +id),
+    create(data) {
+      const list = g(key);
+      const id = list.length ? Math.max(...list.map(i => i.id)) + 1 : 1;
+      const rec = { ...data, id, _at: Date.now() };
+      s(key, [...list, rec]);
+      return rec;
+    },
+    update(id, data) { s(key, g(key).map(r => r.id === +id ? { ...r, ...data } : r)); },
+    del(id) { s(key, g(key).filter(r => r.id !== +id)); },
+  });
+  return {
+    emp: crud('lp_emp'),
+    itens: crud('lp_itens'),
+    notas: crud('lp_notas'),
+    preg: crud('lp_preg'),
+    saidas: crud('lp_saidas'),
+  };
+})();
+
+// ══════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════
+const brl = v => isNaN(+v) ? 'R$ 0,00' :
+  'R$ ' + Math.abs(+v).toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2});
+const brlSign = v => (+v < 0 ? '-' : '') + brl(v);
+const fmtDate = s => { if(!s) return '–'; const d = new Date(s+'T00:00'); return isNaN(d)?s:d.toLocaleDateString('pt-BR'); };
+const fmtDt = s => { if(!s) return '–'; const d = new Date(s); return isNaN(d)?s:d.toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}); };
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const trunc = (s,n=55) => s && s.length>n ? s.slice(0,n)+'…' : (s||'');
+const pf = s => parseFloat(String(s||0).replace(',','.')) || 0;
+
+// empenho computed
+const empTotals = e => {
+  const itens = DB.itens.all().filter(i => i.empenho_id === e.id);
+  const notas = DB.notas.all().filter(n => n.empenho_id === e.id);
+  const tv = itens.reduce((a,i) => a + pf(i.quantidade)*pf(i.valor_venda), 0);
+  const tc = itens.reduce((a,i) => a + pf(i.quantidade)*pf(i.valor_custo), 0);
+  const pend = notas.filter(n=>n.situacao==='PENDENTE').reduce((a,n)=>a+pf(n.valor),0);
+  const pago = notas.filter(n=>n.situacao==='PAGO').reduce((a,n)=>a+pf(n.valor),0);
+  const sEnt = itens.length===0 ? 'SEM ITENS' :
+    itens.every(i=>i.situacao_entrega==='ENTREGUE') ? 'ENTREGUE' :
+    itens.some(i=>i.situacao_entrega!=='FALTA ENTREGAR') ? 'ENTREGUE PARCIAL' : 'FALTA ENTREGAR';
+  return { tv, tc, lucro: tv-tc, pend, pago, itens, notas, sEnt };
+};
+
+// badges
+const bdgEnt = s => {
+  if(s==='ENTREGUE') return `<span class="bdg bdg-e"><i class="bi bi-check-lg"></i>${s}</span>`;
+  if(s==='ENTREGUE PARCIAL') return `<span class="bdg bdg-p"><i class="bi bi-dash-lg"></i>${s}</span>`;
+  return `<span class="bdg bdg-f"><i class="bi bi-clock"></i>${s}</span>`;
+};
+const bdgNF = s => {
+  if(s==='PAGO') return `<span class="bdg bdg-pg"><i class="bi bi-check-lg"></i>PAGO</span>`;
+  if(s==='CANCELADA') return `<span class="bdg bdg-ca"><i class="bi bi-x-lg"></i>CANCELADA</span>`;
+  return `<span class="bdg bdg-pn"><i class="bi bi-hourglass"></i>PENDENTE</span>`;
+};
+const bdgPrg = s => {
+  const m = {AGENDADO:'bdg-ag',PARTICIPANDO:'bdg-pt',GANHO:'bdg-ga',PERDIDO:'bdg-pe',CANCELADO:'bdg-ca'};
+  const ic = {AGENDADO:'clock',PARTICIPANDO:'play-fill',GANHO:'trophy-fill',PERDIDO:'x-circle',CANCELADO:'slash-circle'};
+  return `<span class="bdg ${m[s]||'bdg-ca'}"><i class="bi bi-${ic[s]||'dash'}"></i>${s}</span>`;
+};
+
+// Flash
+let flashT;
+function flash(msg, type='s'){
+  const fa = document.getElementById('flash-area');
+  const cls = type==='s'?'al-s':type==='w'?'al-w':'al-d';
+  const ic  = type==='s'?'check-circle-fill':'exclamation-triangle-fill';
+  fa.innerHTML = `<div class="al ${cls}"><i class="bi bi-${ic}"></i>${esc(msg)}<button class="al-x" onclick="this.parentElement.remove()"><i class="bi bi-x"></i></button></div>`;
+  clearTimeout(flashT);
+  flashT = setTimeout(()=>{ fa.innerHTML=''; }, 3500);
+}
+
+// ══════════════════════════════════════════════════
+// ROUTER
+// ══════════════════════════════════════════════════
+let currentView = 'dashboard';
+let currentEmpId = null;
+let activeChart = null;
+
+function nav(view, empId=null) {
+  currentView = view;
+  currentEmpId = empId;
+  document.querySelectorAll('.sb-link').forEach(l => l.classList.toggle('active', l.dataset.view === view));
+  const titles = {dashboard:'Dashboard',empenhos:'Empenhos',pregoes:'Agenda de Pregões',financeiro:'Financeiro','emp-detail':'Detalhes do Empenho'};
+  document.getElementById('tbar-title').textContent = titles[view] || 'LicitaPro';
+  if(activeChart){ activeChart.destroy(); activeChart = null; }
+  render();
+}
+
+function render() {
+  const app = document.getElementById('app');
+  const ta  = document.getElementById('tbar-actions');
+  ta.innerHTML = '';
+  if(currentView==='dashboard')   { app.innerHTML = viewDashboard(); ta.innerHTML = `<span style="font-size:.77rem;color:var(--gray400)">${new Date().toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})}</span>`; initDashChart(); }
+  else if(currentView==='empenhos') { app.innerHTML = viewEmpenhos(); ta.innerHTML = `<button class="btn btn-primary btn-sm" onclick="openModal('mo-emp')"><i class="bi bi-plus-lg"></i> Novo Empenho</button>`; }
+  else if(currentView==='emp-detail') { app.innerHTML = viewEmpDetail(currentEmpId); ta.innerHTML = `<button class="btn btn-ghost btn-sm" onclick="nav('empenhos')"><i class="bi bi-arrow-left"></i> Empenhos</button><button class="btn btn-ghost btn-sm" onclick="openModal('mo-emp','${currentEmpId}')"><i class="bi bi-pencil"></i> Editar</button><button class="btn btn-success btn-sm" onclick="openModal('mo-item',null,${currentEmpId})"><i class="bi bi-plus-lg"></i> Item</button><button class="btn btn-primary btn-sm" onclick="openModal('mo-nf',null,${currentEmpId})"><i class="bi bi-file-earmark-plus"></i> Nota Fiscal</button>`; }
+  else if(currentView==='pregoes')  { app.innerHTML = viewPregoes();  ta.innerHTML = `<button class="btn btn-primary btn-sm" onclick="openModal('mo-prg')"><i class="bi bi-plus-lg"></i> Novo Pregão</button>`; }
+  else if(currentView==='financeiro') { app.innerHTML = viewFinanceiro(); ta.innerHTML = `<button class="btn btn-danger btn-sm" onclick="openModal('mo-saida')"><i class="bi bi-plus-lg"></i> Nova Saída</button>`; }
+}
+
+// ══════════════════════════════════════════════════
+// VIEWS
+// ══════════════════════════════════════════════════
+
+function viewDashboard() {
+  const emps = DB.emp.all();
+  const tots = emps.map(e => ({e, ...empTotals(e)}));
+  const tv   = tots.reduce((a,t)=>a+t.tv,0);
+  const tc   = tots.reduce((a,t)=>a+t.tc,0);
+  const pend = tots.reduce((a,t)=>a+t.pend,0);
+  const pago = tots.reduce((a,t)=>a+t.pago,0);
+  const lucro= tv-tc;
+  const alto = DB.itens.all().filter(i=>pf(i.valor_custo)>pf(i.valor_venda)&&pf(i.valor_venda)>0).length;
+  const pregAg = DB.preg.all().filter(p=>p.status==='AGENDADO').length;
+  const itPend = DB.itens.all().filter(i=>i.situacao_entrega!=='ENTREGUE').length;
+  const recent5 = [...emps].sort((a,b)=>b._at-a._at).slice(0,5);
+  const prox5   = DB.preg.all().filter(p=>p.status==='AGENDADO').sort((a,b)=>new Date(a.data_horario)-new Date(b.data_horario)).slice(0,5);
+
+  return `
+  <div class="kpi-grid">
+    ${kpi('receipt-cutoff','#dbeafe','#1d4ed8','Empenhos',emps.length,'contratos')}
+    ${kpi('graph-up-arrow','#dcfce7','#15803d','Total Vendas',brl(tv),'em empenhos','',true)}
+    ${kpi('hourglass-split','#fef9c3','#a16207','A Receber',brl(pend),'notas pendentes',pend>0?'color:var(--yellow)':'',true)}
+    ${kpi(lucro>=0?'arrow-up-circle-fill':'arrow-down-circle-fill',lucro>=0?'#dcfce7':'#fee2e2',lucro>=0?'#15803d':'#b91c1c','Lucro Total',brl(lucro),'venda − custo',lucro<0?'color:var(--red)':'color:var(--green)',true)}
+  </div>
+  <div class="kpi-grid">
+    ${kpi('check-circle-fill','#dcfce7','#15803d','Recebido',brl(pago),'notas pagas','color:var(--green)',true)}
+    ${kpi('exclamation-triangle-fill','#fee2e2','#b91c1c','Custo Alto',alto,'itens com prejuízo')}
+    ${kpi('calendar-event-fill','#dbeafe','#1d4ed8','Pregões',pregAg,'agendados')}
+    ${kpi('truck','#fef9c3','#a16207','Entregas',itPend,'itens pendentes')}
+  </div>
+
+  <div class="gch">
+    <div class="card">
+      <div class="ch"><h2><i class="bi bi-bar-chart-fill"></i>Notas Fiscais por Mês</h2></div>
+      <div class="cb"><canvas id="dashChart" height="145"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><h2><i class="bi bi-calendar-week"></i>Próximos Pregões</h2><button class="btn btn-ghost btn-sm" onclick="nav('pregoes')">Ver todos</button></div>
+      ${prox5.length ? prox5.map(p=>`
+        <div style="padding:11px 16px;border-bottom:1px solid var(--gray100)">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+            <div>
+              <div style="font-size:.84rem;font-weight:700">${esc(p.orgao)}</div>
+              <div style="font-size:.72rem;color:var(--gray400);margin-top:1px">${esc(trunc(p.objeto,42))}</div>
+            </div>
+            <div style="text-align:right;flex-shrink:0">
+              <div style="font-size:.74rem;font-weight:700;color:var(--blue)">${fmtDt(p.data_horario)}</div>
+              <div style="margin-top:4px">${bdgPrg(p.status)}</div>
+            </div>
+          </div>
+        </div>`).join('')
+      : '<div style="padding:32px;text-align:center;color:var(--gray400);font-size:.82rem"><i class="bi bi-calendar-x" style="font-size:1.4rem;display:block;margin-bottom:8px"></i>Nenhum pregão agendado</div>'}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h2><i class="bi bi-receipt"></i>Empenhos Recentes</h2><button class="btn btn-ghost btn-sm" onclick="nav('empenhos')">Ver todos</button></div>
+    ${recent5.length ? `<div style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Nº Empenho</th><th>Órgão</th><th class="tr">Total Venda</th><th class="tr">Lucro</th><th>Situação</th><th></th></tr></thead>
+      <tbody>${recent5.map(e=>{const t=empTotals(e);return `<tr>
+        <td><b style="color:var(--gray900)">#${esc(e.numero)}</b></td>
+        <td><div style="font-weight:600">${esc(e.orgao||'–')}</div>${e.uasg?`<div style="font-size:.7rem;color:var(--gray400)">UASG ${esc(e.uasg)}</div>`:''}</td>
+        <td class="tr" style="font-weight:700">${brl(t.tv)}</td>
+        <td class="tr"><span class="${t.lucro<0?'neg':'pos'}">${brl(t.lucro)}</span></td>
+        <td>${bdgEnt(t.sEnt)}</td>
+        <td><button class="btn btn-ghost btn-xs" onclick="nav('emp-detail',${e.id})"><i class="bi bi-arrow-right"></i> Ver</button></td>
+      </tr>`}).join('')}</tbody>
+    </table></div>` : `<div class="empty"><i class="bi bi-receipt"></i><h3>Nenhum empenho</h3><p>Cadastre o primeiro empenho</p><button class="btn btn-primary btn-sm" onclick="openModal('mo-emp')"><i class="bi bi-plus-lg"></i> Novo Empenho</button></div>`}
+  </div>`;
+}
+
+function kpi(icon, bg, color, label, val, sub='', valStyle='', isMoney=false) {
+  return `<div class="kpi-card">
+    <div class="kpi-ic" style="background:${bg};color:${color}"><i class="bi bi-${icon}"></i></div>
+    <div class="kpi-b">
+      <div class="kl">${label}</div>
+      <div class="kv" style="${valStyle}">${isMoney?val:val}</div>
+      ${sub?`<div class="ks">${sub}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function initDashChart() {
+  const el = document.getElementById('dashChart');
+  if(!el) return;
+  const now = new Date();
+  const labels=[], data=[];
+  for(let i=4;i>=0;i--){
+    const d = new Date(now.getFullYear(), now.getMonth()-i, 1);
+    const y = d.getFullYear(), m = d.getMonth();
+    labels.push(d.toLocaleDateString('pt-BR',{month:'short',year:'2-digit'}));
+    const total = DB.notas.all().filter(n=>{
+      if(!n.data) return false;
+      const nd = new Date(n.data+'T00:00');
+      return nd.getFullYear()===y && nd.getMonth()===m && n.situacao!=='CANCELADA';
+    }).reduce((a,n)=>a+pf(n.valor),0);
+    data.push(Math.round(total));
+  }
+  if(typeof Chart === 'undefined') return;
+  Chart.defaults.font.family = 'Inter, sans-serif';
+  activeChart = new Chart(el.getContext('2d'), {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'NFs (R$)', data, backgroundColor:'rgba(37,99,235,.82)', borderRadius:7, borderSkipped:false }] },
+    options:{
+      responsive:true,
+      plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>' '+brl(c.raw) }}},
+      scales:{
+        y:{ grid:{color:'#f1f5f9'}, ticks:{ callback:v=>'R$'+(v>=1000?(v/1000).toFixed(0)+'k':v), font:{size:11} }},
+        x:{ grid:{display:false}, ticks:{font:{size:11}} }
+      }
+    }
+  });
+}
+
+// ── EMPENHOS LIST ──
+let empFilter = '';
+let empStatus = '';
+
+function viewEmpenhos() {
+  let list = DB.emp.all();
+  const q = empFilter.toLowerCase();
+  if(q) list = list.filter(e=>(e.numero+' '+(e.orgao||'')+' '+(e.objeto||'')).toLowerCase().includes(q));
+  if(empStatus) list = list.filter(e=> empTotals(e).sEnt === empStatus);
+  list = [...list].sort((a,b)=>b._at-a._at);
+
+  return `
+  <div class="tb">
+    <label class="srch" style="flex:1;max-width:320px">
+      <i class="bi bi-search"></i>
+      <input id="empQ" placeholder="Buscar número, órgão, objeto…" value="${esc(empFilter)}" oninput="empFilter=this.value;renderInPlace('emp-list')">
+    </label>
+    <div class="ftabs">
+      ${['','FALTA ENTREGAR','ENTREGUE PARCIAL','ENTREGUE'].map(s=>`
+        <button class="ftab ${empStatus===s?'active':''}" onclick="empStatus='${s}';renderInPlace('emp-list')">${s||'Todos'}</button>`).join('')}
+    </div>
+  </div>
+  <div class="card" id="emp-list-wrap">
+    <div id="emp-list">${empTable(list)}</div>
+  </div>`;
+}
+
+function empTable(list) {
+  if(!list.length) return `<div class="empty"><i class="bi bi-receipt"></i><h3>Nenhum empenho encontrado</h3><p>Cadastre ou ajuste os filtros</p><button class="btn btn-primary btn-sm" onclick="openModal('mo-emp')"><i class="bi bi-plus-lg"></i> Novo Empenho</button></div>`;
+  return `<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>Nº Empenho</th><th>Órgão / UASG</th><th>Data</th><th class="tc">Itens</th><th class="tr">Total Venda</th><th class="tr">Lucro</th><th class="tr">Pendente</th><th>Situação</th><th></th></tr></thead>
+    <tbody>${list.map(e=>{const t=empTotals(e);return `<tr>
+      <td><b style="font-size:.93rem;color:var(--gray900)">#${esc(e.numero)}</b></td>
+      <td><div style="font-weight:600">${esc(e.orgao||'–')}</div>${e.uasg?`<div style="font-size:.7rem;color:var(--gray400)">UASG ${esc(e.uasg)}</div>`:''}</td>
+      <td style="color:var(--gray500);font-size:.8rem">${fmtDate(e.data_emissao)}</td>
+      <td class="tc"><span style="width:24px;height:24px;background:var(--gray100);border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:.73rem;font-weight:700;color:var(--gray600)">${t.itens.length}</span></td>
+      <td class="tr" style="font-weight:700">${brl(t.tv)}</td>
+      <td class="tr"><span class="${t.lucro<0?'neg':'pos'}">${brl(t.lucro)}</span></td>
+      <td class="tr">${t.pend>0?`<span style="font-weight:700;color:var(--yellow)">${brl(t.pend)}</span>`:'<span style="color:var(--gray300)">–</span>'}</td>
+      <td>${bdgEnt(t.sEnt)}</td>
+      <td><div class="act">
+        <button class="bic" title="Ver" onclick="nav('emp-detail',${e.id})"><i class="bi bi-eye"></i></button>
+        <button class="bic" title="Editar" onclick="openModal('mo-emp','${e.id}')"><i class="bi bi-pencil"></i></button>
+        <button class="bic d" title="Excluir" onclick="delEmp(${e.id})"><i class="bi bi-trash"></i></button>
+      </div></td>
+    </tr>`}).join('')}</tbody>
+  </table></div>`;
+}
+
+function renderInPlace(id) {
+  let list = DB.emp.all();
+  const q = empFilter.toLowerCase();
+  if(q) list = list.filter(e=>(e.numero+' '+(e.orgao||'')+' '+(e.objeto||'')).toLowerCase().includes(q));
+  if(empStatus) list = list.filter(e=> empTotals(e).sEnt === empStatus);
+  list = [...list].sort((a,b)=>b._at-a._at);
+  const el = document.getElementById(id);
+  if(el) el.innerHTML = empTable(list);
+  document.querySelectorAll('.ftab').forEach(b=>{
+    b.classList.toggle('active', b.textContent.trim()===(empStatus||'Todos'));
+  });
+}
+
+// ── EMP DETAIL ──
+function viewEmpDetail(id) {
+  const e = DB.emp.find(id);
+  if(!e) return `<div class="empty"><i class="bi bi-search"></i><h3>Empenho não encontrado</h3><button class="btn btn-ghost btn-sm" onclick="nav('empenhos')">Voltar</button></div>`;
+  const t = empTotals(e);
+  return `
+  <div class="dh">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div>
+        <div class="dh-num">Empenho #${esc(e.numero)}</div>
+        <div class="dh-sub">${esc(e.objeto||'Sem descrição')}</div>
+      </div>
+      <div>${bdgEnt(t.sEnt)}</div>
+    </div>
+    <div class="dh-meta">
+      <div class="dh-f"><div class="dl">Órgão</div><div class="dv">${esc(e.orgao||'–')}</div></div>
+      <div class="dh-f"><div class="dl">UASG</div><div class="dv">${esc(e.uasg||'–')}</div></div>
+      <div class="dh-f"><div class="dl">Data Emissão</div><div class="dv">${fmtDate(e.data_emissao)}</div></div>
+      <div class="dh-f"><div class="dl">Itens</div><div class="dv">${t.itens.length}</div></div>
+    </div>
+  </div>
+
+  <div class="sbar">
+    <div class="si"><div class="sl">Total Venda</div><div class="sv" style="color:var(--blue)">${brl(t.tv)}</div></div>
+    <div class="si"><div class="sl">Total Custo</div><div class="sv">${brl(t.tc)}</div></div>
+    <div class="si"><div class="sl">Lucro</div><div class="sv ${t.lucro<0?'neg':'pos'}">${brl(t.lucro)}</div></div>
+    <div class="si"><div class="sl">NFs Pendente</div><div class="sv" style="color:var(--yellow)">${brl(t.pend)}</div></div>
+    <div class="si"><div class="sl">NFs Pagas</div><div class="sv" style="color:var(--green)">${brl(t.pago)}</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="ch">
+      <h2><i class="bi bi-list-ul"></i>Itens do Empenho</h2>
+      <button class="btn btn-success btn-sm" onclick="openModal('mo-item',null,${e.id})"><i class="bi bi-plus-lg"></i> Adicionar Item</button>
+    </div>
+    ${t.itens.length ? `<div style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Produto</th><th>Und</th><th>Marca</th><th class="tr">Qtd</th><th class="tr">Vlr Venda</th><th class="tr">Total Venda</th><th class="tr">Vlr Custo</th><th class="tr">Total Custo</th><th class="tr">Lucro</th><th>Entrega</th><th>Obs</th><th></th></tr></thead>
+      <tbody>${t.itens.map(i=>{
+        const tv=pf(i.quantidade)*pf(i.valor_venda), tc=pf(i.quantidade)*pf(i.valor_custo), lu=tv-tc;
+        const warn = pf(i.valor_custo)>pf(i.valor_venda) && pf(i.valor_venda)>0;
+        return `<tr class="${warn?'row-warn':''}">
+          <td><div style="font-weight:700">${esc(i.item_nome)}</div>${i.responsavel_entrega?`<div style="font-size:.7rem;color:var(--gray400)"><i class="bi bi-person"></i> ${esc(i.responsavel_entrega)}</div>`:''}</td>
+          <td><span style="background:var(--gray100);padding:2px 7px;border-radius:5px;font-size:.71rem;font-weight:600;color:var(--gray600)">${esc(i.unidade||'–')}</span></td>
+          <td style="color:var(--gray400);font-size:.79rem">${esc(i.marca||'–')}</td>
+          <td class="tr" style="font-weight:600">${pf(i.quantidade)%1===0?pf(i.quantidade).toFixed(0):pf(i.quantidade)}</td>
+          <td class="tr">${brl(i.valor_venda)}</td>
+          <td class="tr" style="font-weight:700">${brl(tv)}</td>
+          <td class="tr ${warn?'neg':''}">${brl(i.valor_custo)}</td>
+          <td class="tr">${brl(tc)}</td>
+          <td class="tr"><span class="${lu<0?'neg':'pos'}">${brl(lu)}</span></td>
+          <td>${bdgEnt(i.situacao_entrega)}</td>
+          <td style="max-width:150px;font-size:.75rem;color:var(--gray400)">${esc(trunc(i.observacao,35))}</td>
+          <td><div class="act">
+            <button class="bic" onclick="openModal('mo-item','${i.id}',${e.id})"><i class="bi bi-pencil"></i></button>
+            <button class="bic d" onclick="delItem(${i.id},${e.id})"><i class="bi bi-trash"></i></button>
+          </div></td>
+        </tr>`;}).join('')}
+      </tbody>
+      <tfoot><tr>
+        <td colspan="5" class="tr" style="color:var(--gray500)">Totais:</td>
+        <td class="tr" style="color:var(--blue)">${brl(t.tv)}</td>
+        <td></td>
+        <td class="tr">${brl(t.tc)}</td>
+        <td class="tr"><span class="${t.lucro<0?'neg':'pos'}">${brl(t.lucro)}</span></td>
+        <td colspan="3"></td>
+      </tr></tfoot>
+    </table></div>`
+    : `<div class="empty" style="padding:32px"><i class="bi bi-box-seam"></i><h3>Nenhum item</h3><p>Adicione os produtos deste empenho</p><button class="btn btn-success btn-sm" onclick="openModal('mo-item',null,${e.id})"><i class="bi bi-plus-lg"></i> Adicionar Item</button></div>`}
+  </div>
+
+  <div class="card">
+    <div class="ch">
+      <div style="display:flex;align-items:center;gap:10px;flex:1">
+        <h2 style="margin:0"><i class="bi bi-file-earmark-text"></i>Notas Fiscais</h2>
+        <span class="bdg bdg-pn"><i class="bi bi-hourglass"></i>Pendente: ${brl(t.pend)}</span>
+        <span class="bdg bdg-pg"><i class="bi bi-check-lg"></i>Pago: ${brl(t.pago)}</span>
+      </div>
+      <button class="btn btn-primary btn-sm" onclick="openModal('mo-nf',null,${e.id})"><i class="bi bi-plus-lg"></i> Nova NF</button>
+    </div>
+    ${t.notas.length ? `<div style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Nº NF</th><th>Item</th><th class="tr">Valor</th><th>Data</th><th>Situação</th><th>Obs</th><th></th></tr></thead>
+      <tbody>${t.notas.map(n=>{
+        const itRef = n.item_id ? DB.itens.find(n.item_id) : null;
+        return `<tr>
+          <td style="font-weight:700">${esc(n.numero||'–')}</td>
+          <td style="font-size:.79rem;color:var(--gray500)">${esc(itRef?itRef.item_nome:'–')}</td>
+          <td class="tr" style="font-weight:700">${brl(n.valor)}</td>
+          <td style="font-size:.8rem;color:var(--gray500)">${fmtDate(n.data)}</td>
+          <td>${bdgNF(n.situacao)}</td>
+          <td style="font-size:.74rem;color:var(--gray400);max-width:140px">${esc(trunc(n.observacao,30))}</td>
+          <td><div class="act">
+            ${n.situacao==='PENDENTE'?`<button class="btn btn-success btn-xs" onclick="marcarPago(${n.id},${e.id})"><i class="bi bi-check-lg"></i> Pago</button>`:''}
+            <button class="bic" onclick="openModal('mo-nf','${n.id}',${e.id})"><i class="bi bi-pencil"></i></button>
+            <button class="bic d" onclick="delNF(${n.id},${e.id})"><i class="bi bi-trash"></i></button>
+          </div></td>
+        </tr>`;}).join('')}
+      </tbody>
+    </table></div>`
+    : `<div class="empty" style="padding:32px"><i class="bi bi-file-earmark-x"></i><h3>Nenhuma nota fiscal</h3><p>Registre as NFs deste empenho</p><button class="btn btn-primary btn-sm" onclick="openModal('mo-nf',null,${e.id})"><i class="bi bi-plus-lg"></i> Nova Nota Fiscal</button></div>`}
+  </div>`;
+}
+
+// ── PREGÕES ──
+let prgFilter = '';
+let prgStatus = '';
+
+function viewPregoes() {
+  let list = DB.preg.all();
+  const q = prgFilter.toLowerCase();
+  if(q) list = list.filter(p=>(p.orgao+' '+(p.uasg||'')+' '+(p.objeto||'')).toLowerCase().includes(q));
+  if(prgStatus) list = list.filter(p=>p.status===prgStatus);
+  list = [...list].sort((a,b)=>new Date(a.data_horario)-new Date(b.data_horario));
+
+  return `
+  <div class="tb">
+    <label class="srch" style="flex:1;max-width:320px">
+      <i class="bi bi-search"></i>
+      <input id="prgQ" placeholder="Buscar órgão, UASG, objeto…" value="${esc(prgFilter)}" oninput="prgFilter=this.value;renderPrg()">
+    </label>
+    <div class="ftabs">
+      ${['','AGENDADO','PARTICIPANDO','GANHO','PERDIDO','CANCELADO'].map(s=>`
+        <button class="ftab ${prgStatus===s?'active':''}" onclick="prgStatus='${s}';renderPrg()">${s||'Todos'}</button>`).join('')}
+    </div>
+  </div>
+  <div class="card"><div id="prg-list">${prgTable(list)}</div></div>`;
+}
+
+function renderPrg() {
+  let list = DB.preg.all();
+  const q = prgFilter.toLowerCase();
+  if(q) list = list.filter(p=>(p.orgao+' '+(p.uasg||'')+' '+(p.objeto||'')).toLowerCase().includes(q));
+  if(prgStatus) list = list.filter(p=>p.status===prgStatus);
+  list = [...list].sort((a,b)=>new Date(a.data_horario)-new Date(b.data_horario));
+  const el = document.getElementById('prg-list');
+  if(el) el.innerHTML = prgTable(list);
+  document.querySelectorAll('.ftab').forEach(b=>{
+    b.classList.toggle('active', b.textContent.trim()===(prgStatus||'Todos'));
+  });
+}
+
+function prgTable(list) {
+  if(!list.length) return `<div class="empty"><i class="bi bi-calendar-x"></i><h3>Nenhum pregão encontrado</h3><p>Cadastre ou ajuste os filtros</p><button class="btn btn-primary btn-sm" onclick="openModal('mo-prg')"><i class="bi bi-plus-lg"></i> Novo Pregão</button></div>`;
+  return `<div style="overflow-x:auto"><table class="tbl">
+    <thead><tr><th>Data / Hora</th><th>Órgão</th><th>UASG</th><th>Objeto</th><th class="tr">Valor</th><th class="tc">Atestado</th><th>Responsável</th><th>Status</th><th></th></tr></thead>
+    <tbody>${list.map(p=>`<tr>
+      <td><div style="font-weight:700;color:var(--blue)">${fmtDt(p.data_horario)}</div>${p.forma?`<div style="font-size:.7rem;color:var(--gray400)">${esc(p.forma)}</div>`:''}</td>
+      <td style="font-weight:600">${esc(p.orgao)}</td>
+      <td style="color:var(--gray400);font-size:.79rem">${esc(p.uasg||'–')}</td>
+      <td style="max-width:190px;font-size:.8rem;color:var(--gray600)">${esc(trunc(p.objeto,55))}</td>
+      <td class="tr" style="font-weight:700">${p.valor?brl(p.valor):'–'}</td>
+      <td class="tc">${p.exige_atestado?`<span class="bdg bdg-pn"><i class="bi bi-file-text"></i>Sim${p.percentagem_atestado?' '+p.percentagem_atestado+'%':''}</span>`:'<span style="color:var(--gray300);font-size:.77rem">Não</span>'}</td>
+      <td style="font-size:.81rem;color:var(--gray600)">${esc(p.responsavel||'–')}</td>
+      <td>${bdgPrg(p.status||'AGENDADO')}</td>
+      <td><div class="act">
+        <button class="bic" onclick="openModal('mo-prg','${p.id}')"><i class="bi bi-pencil"></i></button>
+        <button class="bic d" onclick="delPrg(${p.id})"><i class="bi bi-trash"></i></button>
+      </div></td>
+    </tr>`).join('')}</tbody>
+  </table></div>`;
+}
+
+// ── FINANCEIRO ──
+let finMes = (() => { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; })();
+
+function viewFinanceiro() {
+  const [y,m] = finMes.split('-').map(Number);
+  const saidas = DB.saidas.all().filter(s=>{ if(!s.data) return false; const d=new Date(s.data+'T00:00'); return d.getFullYear()===y&&d.getMonth()+1===m; });
+  const nfsMes = DB.notas.all().filter(n=>{ if(!n.data) return false; const d=new Date(n.data+'T00:00'); return d.getFullYear()===y&&d.getMonth()+1===m; });
+  const todasSaidas = [...DB.saidas.all()].sort((a,b)=>new Date(b.data)-new Date(a.data));
+  const totSaidas = saidas.reduce((a,s)=>a+pf(s.valor),0);
+  const totRec    = nfsMes.filter(n=>n.situacao==='PAGO').reduce((a,n)=>a+pf(n.valor),0);
+  const totPend   = nfsMes.filter(n=>n.situacao==='PENDENTE').reduce((a,n)=>a+pf(n.valor),0);
+  const saldo     = totRec - totSaidas;
+
+  return `
+  <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">
+    <label style="font-size:.77rem;font-weight:700;color:var(--gray500);text-transform:uppercase;letter-spacing:.06em">Mês:</label>
+    <input type="month" class="fc" value="${finMes}" style="width:155px" onchange="finMes=this.value;nav('financeiro')">
+  </div>
+
+  <div class="kpi-grid" style="margin-bottom:18px">
+    ${kpi('check-circle-fill','#dcfce7','#15803d','Recebido',brl(totRec),'','color:var(--green)',true)}
+    ${kpi('hourglass-split','#fef9c3','#a16207','A Receber',brl(totPend),'','color:var(--yellow)',true)}
+    ${kpi('arrow-down-circle-fill','#fee2e2','#b91c1c','Saídas',brl(totSaidas),'','color:var(--red)',true)}
+    ${kpi('wallet2',saldo>=0?'#dcfce7':'#fee2e2',saldo>=0?'#15803d':'#b91c1c','Saldo do Mês',brl(saldo),'recebido − saídas',saldo<0?'color:var(--red)':'color:var(--green)',true)}
+  </div>
+
+  <div class="g2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="ch"><h2><i class="bi bi-arrow-down-circle" style="color:var(--red)"></i>Saídas do Mês</h2>
+        <button class="btn btn-danger btn-sm" onclick="openModal('mo-saida')"><i class="bi bi-plus-lg"></i></button>
+      </div>
+      ${saidas.length ? `<table class="tbl"><thead><tr><th>Data</th><th>Destino</th><th class="tr">Valor</th><th></th></tr></thead>
+        <tbody>${saidas.map(s=>`<tr>
+          <td style="font-size:.8rem;color:var(--gray500)">${fmtDate(s.data)}</td>
+          <td style="font-weight:500">${esc(s.destino||'–')}</td>
+          <td class="tr" style="font-weight:700;color:var(--red)">${brl(s.valor)}</td>
+          <td><button class="bic d" onclick="delSaida(${s.id})"><i class="bi bi-trash"></i></button></td>
+        </tr>`).join('')}</tbody>
+        <tfoot><tr><td colspan="2" class="tr" style="color:var(--gray500)">Total:</td><td class="tr" style="color:var(--red)">${brl(totSaidas)}</td><td></td></tr></tfoot>
+      </table>`
+      : `<div class="empty" style="padding:28px"><i class="bi bi-receipt" style="font-size:1.4rem"></i><h3>Nenhuma saída neste mês</h3><p></p></div>`}
+    </div>
+
+    <div class="card">
+      <div class="ch"><h2><i class="bi bi-file-earmark-text"></i>Notas Fiscais do Mês</h2></div>
+      ${nfsMes.length ? `<table class="tbl"><thead><tr><th>NF</th><th>Empenho</th><th class="tr">Valor</th><th>Data</th><th>Status</th></tr></thead>
+        <tbody>${nfsMes.map(n=>{const emp=DB.emp.find(n.empenho_id);return `<tr>
+          <td style="font-weight:700">${esc(n.numero||'–')}</td>
+          <td style="font-size:.79rem;color:var(--gray500)">#${esc(emp?emp.numero:'?')}</td>
+          <td class="tr" style="font-weight:700">${brl(n.valor)}</td>
+          <td style="font-size:.79rem;color:var(--gray500)">${fmtDate(n.data)}</td>
+          <td>${bdgNF(n.situacao)}</td>
+        </tr>`}).join('')}</tbody>
+      </table>`
+      : `<div class="empty" style="padding:28px"><i class="bi bi-file-earmark-x" style="font-size:1.4rem"></i><h3>Nenhuma NF neste mês</h3><p></p></div>`}
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="ch"><h2><i class="bi bi-clock-history" style="color:var(--gray500)"></i>Histórico de Saídas</h2></div>
+    ${todasSaidas.length ? `<div style="overflow-x:auto"><table class="tbl">
+      <thead><tr><th>Data</th><th>Destino</th><th>Obs</th><th class="tr">Valor</th></tr></thead>
+      <tbody>${todasSaidas.map(s=>`<tr>
+        <td style="font-size:.8rem;color:var(--gray500)">${fmtDate(s.data)}</td>
+        <td style="font-weight:500">${esc(s.destino||'–')}</td>
+        <td style="font-size:.76rem;color:var(--gray400)">${esc(trunc(s.observacao,40))}</td>
+        <td class="tr" style="font-weight:700;color:var(--red)">${brl(s.valor)}</td>
+      </tr>`).join('')}</tbody>
+    </table></div>` : `<div class="empty"><i class="bi bi-arrow-down-circle"></i><h3>Nenhuma saída registrada</h3></div>`}
+  </div>`;
+}
+
+// ══════════════════════════════════════════════════
+// MODALS
+// ══════════════════════════════════════════════════
+function openModal(type, id=null, empId=null) {
+  const area = document.getElementById('modal-area');
+  const e = id ? DB.emp.find(id) : null;
+  const it = id ? DB.itens.find(id) : null;
+  const n = id ? DB.notas.find(id) : null;
+  const p = id ? DB.preg.find(id) : null;
+  const s = id ? DB.saidas.find(id) : null;
+
+  let html = '';
+  if(type==='mo-emp')   html = moEmp(e);
+  if(type==='mo-item')  html = moItem(it, empId);
+  if(type==='mo-nf')    html = moNF(n, empId);
+  if(type==='mo-prg')   html = moPrg(p);
+  if(type==='mo-saida') html = moSaida(s);
+
+  area.innerHTML = html;
+  requestAnimationFrame(()=>{
+    const mo = area.querySelector('.mo');
+    if(mo) mo.classList.add('open');
+    if(type==='mo-item') calcItem();
+  });
+}
+
+function closeModal() {
+  const mo = document.querySelector('.mo.open');
+  if(mo) mo.classList.remove('open');
+}
+
+function moEmp(e) {
+  return `<div class="mo" id="mo-emp" onclick="if(event.target===this)closeModal()">
+  <div class="mb lg">
+    <div class="mh"><h3><i class="bi bi-receipt-cutoff" style="color:var(--blue)"></i>${e?'Editar':'Novo'} Empenho</h3><button class="x-btn" onclick="closeModal()"><i class="bi bi-x-lg"></i></button></div>
+    <form id="form-emp" onsubmit="saveEmp(event,'${e?e.id:''}')">
+      <div class="mbc">
+        <div class="fg fg2" style="margin-bottom:13px">
+          <div><label class="lbl">Nº do Empenho<span class="req">*</span></label><input class="fc" name="numero" required value="${esc(e?e.numero:'')}" placeholder="Ex: 695"></div>
+          <div><label class="lbl">Data de Emissão</label><input type="date" class="fc" name="data_emissao" value="${e&&e.data_emissao?e.data_emissao:''}"></div>
+        </div>
+        <div style="margin-bottom:13px"><label class="lbl">Órgão</label><input class="fc" name="orgao" value="${esc(e?e.orgao:'')}" placeholder="Nome do órgão público"></div>
+        <div class="fg fg2" style="margin-bottom:13px">
+          <div><label class="lbl">UASG</label><input class="fc" name="uasg" value="${esc(e?e.uasg:'')}" placeholder="Ex: 929458"></div>
+        </div>
+        <div><label class="lbl">Objeto / Descrição</label><textarea class="fc" name="objeto" rows="2" placeholder="Descrição do objeto">${esc(e?e.objeto:'')}</textarea></div>
+      </div>
+      <div class="mft"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i>${e?'Salvar':'Criar Empenho'}</button></div>
+    </form>
+  </div></div>`;
+}
+
+function moItem(it, empId) {
+  const emp = DB.emp.find(empId);
+  return `<div class="mo" id="mo-item" onclick="if(event.target===this)closeModal()">
+  <div class="mb lg">
+    <div class="mh"><h3><i class="bi bi-box-seam" style="color:var(--blue)"></i>${it?'Editar':'Novo'} Item — Emp. #${esc(emp?emp.numero:'?')}</h3><button class="x-btn" onclick="closeModal()"><i class="bi bi-x-lg"></i></button></div>
+    <form id="form-item" onsubmit="saveItem(event,'${it?it.id:''}','${empId}')">
+      <div class="mbc">
+        <div class="fg fg3" style="margin-bottom:13px">
+          <div style="grid-column:1/3"><label class="lbl">Produto<span class="req">*</span></label><input class="fc" name="item_nome" required value="${esc(it?it.item_nome:'')}" placeholder="Ex: Arroz Branco, Banana…"></div>
+          <div><label class="lbl">Unidade</label><select class="fsel" name="unidade"><option value="">–</option>${['KG','UND','L','PCT','CX','DZ','FARDO','TON'].map(u=>`<option value="${u}"${it&&it.unidade===u?' selected':''}>${u}</option>`).join('')}</select></div>
+        </div>
+        <div class="fg fg4" style="margin-bottom:13px">
+          <div><label class="lbl">Qtd<span class="req">*</span></label><input type="number" step="0.01" class="fc" name="quantidade" id="iQty" oninput="calcItem()" value="${it?pf(it.quantidade):''}" placeholder="0"></div>
+          <div><label class="lbl">Vlr Venda (R$)</label><input type="number" step="0.01" class="fc" name="valor_venda" id="iVv" oninput="calcItem()" value="${it?pf(it.valor_venda):''}" placeholder="0,00"></div>
+          <div><label class="lbl">Vlr Custo (R$)</label><input type="number" step="0.01" class="fc" name="valor_custo" id="iVc" oninput="calcItem()" value="${it?pf(it.valor_custo):''}" placeholder="0,00"></div>
+          <div><label class="lbl">Qtd Entregue</label><input type="number" step="0.01" class="fc" name="quantidade_entregue" value="${it?pf(it.quantidade_entregue):0}" placeholder="0"></div>
+        </div>
+        <div class="calc" id="calcBox">
+          <div class="cc"><div class="ccl">Total Venda</div><div class="ccv" id="iTv" style="color:var(--blue)">R$ 0,00</div></div>
+          <div class="sep">−</div>
+          <div class="cc"><div class="ccl">Total Custo</div><div class="ccv" id="iTc">R$ 0,00</div></div>
+          <div class="sep">=</div>
+          <div class="cc"><div class="ccl">Lucro</div><div class="ccv" id="iLu">R$ 0,00</div></div>
+          <div class="alert-custo" id="alertCusto"><i class="bi bi-exclamation-triangle-fill"></i>Custo maior!</div>
+        </div>
+        <div class="fg fg3" style="margin-top:13px;margin-bottom:13px">
+          <div><label class="lbl">Situação Entrega</label><select class="fsel" name="situacao_entrega">${['FALTA ENTREGAR','ENTREGUE PARCIAL','ENTREGUE'].map(o=>`<option value="${o}"${it&&it.situacao_entrega===o?' selected':(!it&&o==='FALTA ENTREGAR'?' selected':'')}>${o}</option>`).join('')}</select></div>
+          <div><label class="lbl">Resp. Compra</label><input class="fc" name="responsavel_compra" value="${esc(it?it.responsavel_compra:'')}" placeholder="Nome"></div>
+          <div><label class="lbl">Resp. Entrega</label><input class="fc" name="responsavel_entrega" value="${esc(it?it.responsavel_entrega:'')}" placeholder="Nome"></div>
+        </div>
+        <div><label class="lbl">Marca</label><input class="fc" name="marca" value="${esc(it?it.marca:'')}" placeholder="Opcional"></div>
+        <div style="margin-top:12px"><label class="lbl">Observação</label><textarea class="fc" name="observacao" rows="2">${esc(it?it.observacao:'')}</textarea></div>
+      </div>
+      <div class="mft"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-success"><i class="bi bi-check-lg"></i>${it?'Salvar':'Adicionar Item'}</button></div>
+    </form>
+  </div></div>`;
+}
+
+function moNF(n, empId) {
+  const emp = DB.emp.find(empId);
+  const itens = emp ? DB.itens.all().filter(i=>i.empenho_id===emp.id) : [];
+  return `<div class="mo" id="mo-nf" onclick="if(event.target===this)closeModal()">
+  <div class="mb">
+    <div class="mh"><h3><i class="bi bi-file-earmark-text" style="color:var(--blue)"></i>${n?'Editar':'Nova'} Nota Fiscal</h3><button class="x-btn" onclick="closeModal()"><i class="bi bi-x-lg"></i></button></div>
+    <form id="form-nf" onsubmit="saveNF(event,'${n?n.id:''}','${empId}')">
+      <div class="mbc">
+        <div class="fg fg2" style="margin-bottom:13px">
+          <div><label class="lbl">Número da NF</label><input class="fc" name="numero" value="${esc(n?n.numero:'')}" placeholder="Ex: NF 153"></div>
+          <div><label class="lbl">Data</label><input type="date" class="fc" name="data" value="${n&&n.data?n.data:''}"></div>
+        </div>
+        <div style="margin-bottom:13px"><label class="lbl">Item Referente (opcional)</label>
+          <select class="fsel" name="item_id"><option value="">– NF geral do empenho –</option>
+            ${itens.map(i=>`<option value="${i.id}"${n&&n.item_id===i.id?' selected':''}>${esc(i.item_nome)} (${esc(i.unidade)})</option>`).join('')}
+          </select>
+        </div>
+        <div style="margin-bottom:13px"><label class="lbl">Valor (R$)<span class="req">*</span></label><input type="number" step="0.01" class="fc" name="valor" required value="${n?pf(n.valor):''}" placeholder="0,00" style="font-size:1.05rem;font-weight:700"></div>
+        <div style="margin-bottom:13px"><label class="lbl">Situação</label>
+          <div class="rg">${['PENDENTE','PAGO','CANCELADA'].map(o=>`<label class="ro-opt"><input type="radio" name="situacao" value="${o}"${(n&&n.situacao===o)||(!n&&o==='PENDENTE')?' checked':''}><span>${o}</span></label>`).join('')}</div>
+        </div>
+        <div><label class="lbl">Observação</label><textarea class="fc" name="observacao" rows="2">${esc(n?n.observacao:'')}</textarea></div>
+      </div>
+      <div class="mft"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i>${n?'Salvar':'Registrar NF'}</button></div>
+    </form>
+  </div></div>`;
+}
+
+function moPrg(p) {
+  return `<div class="mo" id="mo-prg" onclick="if(event.target===this)closeModal()">
+  <div class="mb lg">
+    <div class="mh"><h3><i class="bi bi-calendar-event" style="color:var(--blue)"></i>${p?'Editar':'Novo'} Pregão</h3><button class="x-btn" onclick="closeModal()"><i class="bi bi-x-lg"></i></button></div>
+    <form id="form-prg" onsubmit="savePrg(event,'${p?p.id:''}')">
+      <div class="mbc">
+        <div class="fg fg2" style="margin-bottom:13px">
+          <div><label class="lbl">Órgão<span class="req">*</span></label><input class="fc" name="orgao" required value="${esc(p?p.orgao:'')}" placeholder="Ex: Tribunal de Contas"></div>
+          <div><label class="lbl">UASG</label><input class="fc" name="uasg" value="${esc(p?p.uasg:'')}" placeholder="Ex: 929458"></div>
+        </div>
+        <div style="margin-bottom:13px"><label class="lbl">Objeto do Contrato</label><textarea class="fc" name="objeto" rows="2" placeholder="Descrição do objeto licitado">${esc(p?p.objeto:'')}</textarea></div>
+        <div class="fg fg4" style="margin-bottom:13px">
+          <div style="grid-column:1/3"><label class="lbl">Data e Hora da Sessão</label><input type="datetime-local" class="fc" name="data_horario" value="${p&&p.data_horario?p.data_horario:''}"></div>
+          <div><label class="lbl">Modalidade</label><select class="fsel" name="forma"><option value="">–</option>${['Pregão Eletrônico','Pregão Presencial','Tomada de Preço','Concorrência','Dispensa'].map(f=>`<option value="${f}"${p&&p.forma===f?' selected':''}>${f}</option>`).join('')}</select></div>
+          <div><label class="lbl">Nº Itens</label><input type="number" class="fc" name="qtd_itens" value="${p&&p.qtd_itens?p.qtd_itens:''}" placeholder="0"></div>
+        </div>
+        <div class="fg fg4" style="margin-bottom:13px">
+          <div style="grid-column:1/3"><label class="lbl">Valor (R$)</label><input type="number" step="0.01" class="fc" name="valor" value="${p&&p.valor?pf(p.valor):''}" placeholder="0,00"></div>
+          <div><label class="lbl">Exige Atestado?</label><select class="fsel" name="exige_atestado"><option value="0"${p&&!p.exige_atestado?' selected':''}>Não</option><option value="1"${p&&p.exige_atestado?' selected':''}>Sim</option></select></div>
+          <div><label class="lbl">% Atestado</label><input type="number" step="0.1" class="fc" name="percentagem_atestado" value="${p&&p.percentagem_atestado?p.percentagem_atestado:''}" placeholder="Ex: 10"></div>
+        </div>
+        <div class="fg fg3">
+          <div><label class="lbl">Exige Garantia?</label><select class="fsel" name="exige_garantia"><option value="0"${p&&!p.exige_garantia?' selected':''}>Não</option><option value="1"${p&&p.exige_garantia?' selected':''}>Sim</option></select></div>
+          <div><label class="lbl">Responsável</label><input class="fc" name="responsavel" value="${esc(p?p.responsavel:'')}" placeholder="Nome"></div>
+          <div><label class="lbl">Status</label><select class="fsel" name="status">${['AGENDADO','PARTICIPANDO','GANHO','PERDIDO','CANCELADO'].map(s=>`<option value="${s}"${p&&p.status===s?' selected':(!p&&s==='AGENDADO'?' selected':'')}>${s}</option>`).join('')}</select></div>
+        </div>
+      </div>
+      <div class="mft"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i>${p?'Salvar':'Registrar Pregão'}</button></div>
+    </form>
+  </div></div>`;
+}
+
+function moSaida(s) {
+  return `<div class="mo" id="mo-saida" onclick="if(event.target===this)closeModal()">
+  <div class="mb">
+    <div class="mh"><h3><i class="bi bi-arrow-down-circle" style="color:var(--red)"></i>Registrar Saída</h3><button class="x-btn" onclick="closeModal()"><i class="bi bi-x-lg"></i></button></div>
+    <form id="form-saida" onsubmit="saveSaida(event,'${s?s.id:''}')">
+      <div class="mbc">
+        <div class="fg fg2" style="margin-bottom:13px">
+          <div><label class="lbl">Data<span class="req">*</span></label><input type="date" class="fc" name="data" required value="${s&&s.data?s.data:''}"></div>
+          <div><label class="lbl">Valor (R$)<span class="req">*</span></label><input type="number" step="0.01" class="fc" name="valor" required value="${s?pf(s.valor):''}" placeholder="0,00"></div>
+        </div>
+        <div style="margin-bottom:13px"><label class="lbl">Destino / Descrição</label><input class="fc" name="destino" value="${esc(s?s.destino:'')}" placeholder="Ex: Compras Base Aérea"></div>
+        <div><label class="lbl">Observação</label><textarea class="fc" name="observacao" rows="2">${esc(s?s.observacao:'')}</textarea></div>
+      </div>
+      <div class="mft"><button type="button" class="btn btn-ghost" onclick="closeModal()">Cancelar</button><button type="submit" class="btn btn-danger"><i class="bi bi-check-lg"></i>Registrar Saída</button></div>
+    </form>
+  </div></div>`;
+}
+
+// ══════════════════════════════════════════════════
+// FORM SAVE ACTIONS
+// ══════════════════════════════════════════════════
+function fd(form) {
+  const data = {};
+  new FormData(form).forEach((v,k)=>data[k]=v);
+  return data;
+}
+
+function saveEmp(e, id) {
+  e.preventDefault();
+  const data = fd(e.target);
+  if(id) { DB.emp.update(id, data); flash('Empenho atualizado!'); }
+  else    { DB.emp.create(data);    flash('Empenho criado!'); }
+  closeModal();
+  nav(currentView==='emp-detail'?'emp-detail':'empenhos', currentEmpId);
+}
+
+function saveItem(e, id, empId) {
+  e.preventDefault();
+  const data = { ...fd(e.target), empenho_id: +empId };
+  if(id) { DB.itens.update(id, data); flash('Item atualizado!'); }
+  else   { DB.itens.create(data);     flash('Item adicionado!'); }
+  closeModal();
+  nav('emp-detail', +empId);
+}
+
+function saveNF(e, id, empId) {
+  e.preventDefault();
+  const raw = fd(e.target);
+  const data = { ...raw, empenho_id: +empId, item_id: raw.item_id ? +raw.item_id : null };
+  if(id) { DB.notas.update(id, data); flash('Nota Fiscal atualizada!'); }
+  else   { DB.notas.create(data);     flash('Nota Fiscal registrada!'); }
+  closeModal();
+  nav('emp-detail', +empId);
+}
+
+function savePrg(e, id) {
+  e.preventDefault();
+  const data = fd(e.target);
+  data.exige_atestado = data.exige_atestado === '1';
+  data.exige_garantia = data.exige_garantia === '1';
+  if(id) { DB.preg.update(id, data); flash('Pregão atualizado!'); }
+  else   { DB.preg.create(data);     flash('Pregão registrado!'); }
+  closeModal();
+  nav('pregoes');
+}
+
+function saveSaida(e, id) {
+  e.preventDefault();
+  const data = fd(e.target);
+  if(id) { DB.saidas.update(id, data); flash('Saída atualizada!'); }
+  else   { DB.saidas.create(data);     flash('Saída registrada!'); }
+  closeModal();
+  nav('financeiro');
+}
+
+// ══════════════════════════════════════════════════
+// DELETE / ACTIONS
+// ══════════════════════════════════════════════════
+function delEmp(id) {
+  if(!confirm('Excluir este empenho e todos os seus itens e NFs?')) return;
+  DB.emp.del(id);
+  DB.itens.all().filter(i=>i.empenho_id===+id).forEach(i=>DB.itens.del(i.id));
+  DB.notas.all().filter(n=>n.empenho_id===+id).forEach(n=>DB.notas.del(n.id));
+  flash('Empenho excluído','w');
+  nav('empenhos');
+}
+
+function delItem(id, empId) {
+  if(!confirm('Excluir este item?')) return;
+  DB.itens.del(id);
+  flash('Item excluído','w');
+  nav('emp-detail', +empId);
+}
+
+function delNF(id, empId) {
+  if(!confirm('Excluir esta nota fiscal?')) return;
+  DB.notas.del(id);
+  flash('Nota Fiscal excluída','w');
+  nav('emp-detail', +empId);
+}
+
+function delPrg(id) {
+  if(!confirm('Excluir este pregão?')) return;
+  DB.preg.del(id);
+  flash('Pregão excluído','w');
+  nav('pregoes');
+}
+
+function delSaida(id) {
+  if(!confirm('Excluir esta saída?')) return;
+  DB.saidas.del(id);
+  flash('Saída excluída','w');
+  nav('financeiro');
+}
+
+function marcarPago(id, empId) {
+  DB.notas.update(id, { situacao: 'PAGO' });
+  flash('Nota Fiscal marcada como PAGO!');
+  nav('emp-detail', +empId);
+}
+
+// ══════════════════════════════════════════════════
+// CALC ITEM
+// ══════════════════════════════════════════════════
+function calcItem() {
+  const qty = pf(document.getElementById('iQty')?.value);
+  const vv  = pf(document.getElementById('iVv')?.value);
+  const vc  = pf(document.getElementById('iVc')?.value);
+  const tv = qty*vv, tc = qty*vc, lu = tv-tc;
+  const tvEl = document.getElementById('iTv');
+  const tcEl = document.getElementById('iTc');
+  const luEl = document.getElementById('iLu');
+  const acEl = document.getElementById('alertCusto');
+  if(tvEl) tvEl.textContent = brl(tv);
+  if(tcEl) tcEl.textContent = brl(tc);
+  if(luEl) { luEl.textContent = brl(lu); luEl.style.color = lu<0?'var(--red)':lu>0?'var(--green)':'var(--gray500)'; }
+  if(acEl) acEl.classList.toggle('show', vc>vv && vv>0);
+}
+
+// ══════════════════════════════════════════════════
+// SIDEBAR NAV + MOBILE
+// ══════════════════════════════════════════════════
+document.querySelectorAll('.sb-link[data-view]').forEach(link => {
+  link.addEventListener('click', ()=> nav(link.dataset.view));
+});
+
+const sbBtn = document.getElementById('sb-toggle');
+const sb    = document.getElementById('sidebar');
+if(window.innerWidth<=768) sbBtn.style.display='flex';
+sbBtn.addEventListener('click', ()=> sb.classList.toggle('open'));
+document.addEventListener('click', e=>{
+  if(window.innerWidth<=768 && !sb.contains(e.target) && e.target!==sbBtn)
+    sb.classList.remove('open');
+});
+
+// ══════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════
+nav('dashboard');
+</script>
+</body>
+</html>
