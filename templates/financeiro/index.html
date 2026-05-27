@@ -1,199 +1,245 @@
 {% extends 'base.html' %}
-{% block title %}Financeiro{% endblock %}
+{% block title %}Financeiro – LicitaPro{% endblock %}
 {% block page_title %}Financeiro{% endblock %}
 
+{% block topbar %}
+  <button class="btn btn-danger btn-sm" onclick="openModal('modalSaida')">
+    <i class="bi bi-plus-lg"></i> Nova Saída
+  </button>
+{% endblock %}
+
 {% block content %}
+
 <!-- Month selector -->
-<div class="d-flex align-items-center gap-3 mb-4">
-  <form method="get" class="d-flex align-items-center gap-2">
-    <label class="form-label mb-0 fw-semibold">Mês:</label>
-    <input type="month" name="mes" class="form-control form-control-sm" value="{{ mes }}" style="width:160px">
-    <button class="btn btn-outline-secondary btn-sm">Filtrar</button>
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+  <form method="get" style="display:flex;align-items:center;gap:10px">
+    <label style="font-size:.8rem;font-weight:700;color:var(--gray-500);text-transform:uppercase;letter-spacing:.05em">Mês:</label>
+    <input type="month" name="mes" class="form-control" value="{{ mes }}" style="width:160px">
+    <button type="submit" class="btn btn-ghost btn-sm">Filtrar</button>
   </form>
 </div>
 
-<!-- Summary cards -->
-<div class="row g-3 mb-4">
-  <div class="col-6 col-md-3">
-    <div class="card shadow-sm text-center">
-      <div class="card-body">
-        <div class="text-muted small mb-1">Recebido no Mês</div>
-        <div class="fw-bold fs-5 text-success">{{ total_recebido | brl }}</div>
-      </div>
+<!-- KPIs -->
+<div class="kpi-grid" style="margin-bottom:24px">
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#dcfce7;color:#15803d">
+      <i class="bi bi-check-circle-fill"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Recebido no Mês</div>
+      <div class="kpi-value" style="font-size:1.15rem;color:var(--green)">{{ total_recebido | brl }}</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card shadow-sm text-center">
-      <div class="card-body">
-        <div class="text-muted small mb-1">A Receber (Pendente)</div>
-        <div class="fw-bold fs-5 text-warning">{{ total_pendente | brl }}</div>
-      </div>
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#fef9c3;color:#a16207">
+      <i class="bi bi-hourglass-split"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">A Receber</div>
+      <div class="kpi-value" style="font-size:1.15rem;color:var(--yellow)">{{ total_pendente | brl }}</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card shadow-sm text-center">
-      <div class="card-body">
-        <div class="text-muted small mb-1">Saídas no Mês</div>
-        <div class="fw-bold fs-5 text-danger">{{ total_saidas | brl }}</div>
-      </div>
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#fee2e2;color:#b91c1c">
+      <i class="bi bi-arrow-down-circle-fill"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Saídas no Mês</div>
+      <div class="kpi-value" style="font-size:1.15rem;color:var(--red)">{{ total_saidas | brl }}</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card shadow-sm text-center">
-      <div class="card-body">
-        <div class="text-muted small mb-1">Saldo (Recebido − Saídas)</div>
-        <div class="fw-bold fs-5 {{ 'text-danger' if saldo < 0 else 'text-success' }}">{{ saldo | brl }}</div>
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:{% if saldo >= 0 %}#dcfce7;color:#15803d{% else %}#fee2e2;color:#b91c1c{% endif %}">
+      <i class="bi bi-wallet2"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Saldo do Mês</div>
+      <div class="kpi-value {{ 'profit-neg' if saldo < 0 else 'profit-pos' }}" style="font-size:1.15rem">
+        {{ saldo | brl }}
       </div>
+      <div class="kpi-sub">recebido − saídas</div>
     </div>
   </div>
 </div>
 
-<div class="row g-3">
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
+
   <!-- Saídas do mês -->
-  <div class="col-lg-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-semibold d-flex align-items-center justify-content-between">
-        <span>Saídas / Despesas</span>
-        <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#modalSaida">
-          <i class="bi bi-plus-lg"></i>
-        </button>
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="bi bi-arrow-down-circle" style="color:var(--red);margin-right:6px"></i>Saídas do Mês</h2>
+      <button class="btn btn-danger btn-sm" onclick="openModal('modalSaida')">
+        <i class="bi bi-plus-lg"></i>
+      </button>
+    </div>
+    <div class="card-body-flush">
+      {% if saidas %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Destino</th>
+            <th class="text-right">Valor</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in saidas %}
+          <tr>
+            <td style="font-size:.82rem;color:var(--gray-500)">{{ s.data | fmt_date }}</td>
+            <td style="font-weight:500">{{ s.destino or '–' }}</td>
+            <td class="text-right" style="font-weight:700;color:var(--red)">{{ s.valor | brl }}</td>
+            <td>
+              <form method="post" action="{{ url_for('saida_excluir', id=s.id) }}"
+                    onsubmit="return confirm('Excluir esta saída?')">
+                <button class="btn-icon danger"><i class="bi bi-trash"></i></button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="2" class="text-right" style="color:var(--gray-500)">Total:</td>
+            <td class="text-right" style="color:var(--red)">{{ total_saidas | brl }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+      {% else %}
+      <div class="empty-state" style="padding:32px">
+        <i class="bi bi-receipt" style="font-size:1.5rem"></i>
+        <h3 style="font-size:.85rem">Nenhuma saída neste mês</h3>
+        <p></p>
       </div>
-      <div class="card-body p-0">
-        {% if saidas %}
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead class="table-light">
-              <tr><th>Data</th><th>Destino</th><th class="text-end">Valor</th><th></th></tr>
-            </thead>
-            <tbody>
-              {% for s in saidas %}
-              <tr>
-                <td class="small">{{ s.data | fmt_date }}</td>
-                <td>{{ s.destino or '–' }}</td>
-                <td class="text-end fw-semibold text-danger">{{ s.valor | brl }}</td>
-                <td>
-                  <form method="post" action="{{ url_for('saida_excluir', id=s.id) }}"
-                        onsubmit="return confirm('Excluir saída?')">
-                    <button class="btn btn-xs btn-outline-danger" style="padding:.2rem .4rem;font-size:.75rem">
-                      <i class="bi bi-trash"></i>
-                    </button>
-                  </form>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-            <tfoot class="table-light fw-bold">
-              <tr><td colspan="2" class="text-end">Total:</td><td class="text-end text-danger">{{ total_saidas | brl }}</td><td></td></tr>
-            </tfoot>
-          </table>
-        </div>
-        {% else %}
-        <div class="p-4 text-center text-muted small">Nenhuma saída registrada neste mês.</div>
-        {% endif %}
-      </div>
+      {% endif %}
     </div>
   </div>
 
-  <!-- Notas do mês -->
-  <div class="col-lg-6">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white fw-semibold">Notas Fiscais do Mês</div>
-      <div class="card-body p-0">
-        {% if notas_mes %}
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead class="table-light">
-              <tr><th>NF</th><th>Empenho</th><th class="text-end">Valor</th><th>Data</th><th>Situação</th></tr>
-            </thead>
-            <tbody>
-              {% for nf in notas_mes %}
-              <tr>
-                <td class="fw-semibold small">{{ nf.numero or '–' }}</td>
-                <td class="small">{{ nf.empenho.numero }}</td>
-                <td class="text-end fw-semibold">{{ nf.valor | brl }}</td>
-                <td class="small">{{ nf.data | fmt_date }}</td>
-                <td>
-                  <span class="badge rounded-pill
-                    {% if nf.situacao == 'PAGO' %}badge-pago
-                    {% elif nf.situacao == 'CANCELADA' %}badge-cancelada
-                    {% else %}badge-pendente{% endif %}">{{ nf.situacao }}</span>
-                </td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        <div class="p-4 text-center text-muted small">Nenhuma NF neste mês.</div>
-        {% endif %}
-      </div>
+  <!-- NFs do mês -->
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="bi bi-file-earmark-text" style="color:var(--blue);margin-right:6px"></i>Notas Fiscais do Mês</h2>
     </div>
-  </div>
-
-  <!-- Histórico completo de saídas -->
-  <div class="col-12">
-    <div class="card shadow-sm">
-      <div class="card-header bg-white fw-semibold">Histórico de Saídas (todas)</div>
-      <div class="card-body p-0">
-        {% if todas_saidas %}
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead class="table-light">
-              <tr><th>Data</th><th>Destino</th><th>Obs</th><th class="text-end">Valor</th></tr>
-            </thead>
-            <tbody>
-              {% for s in todas_saidas %}
-              <tr>
-                <td class="small">{{ s.data | fmt_date }}</td>
-                <td>{{ s.destino or '–' }}</td>
-                <td class="small text-muted">{{ s.observacao or '' }}</td>
-                <td class="text-end fw-semibold text-danger">{{ s.valor | brl }}</td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        <div class="p-4 text-center text-muted small">Nenhuma saída registrada.</div>
-        {% endif %}
+    <div class="card-body-flush">
+      {% if notas_mes %}
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>NF</th>
+            <th>Empenho</th>
+            <th class="text-right">Valor</th>
+            <th>Data</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for nf in notas_mes %}
+          <tr>
+            <td style="font-weight:700">{{ nf.numero or '–' }}</td>
+            <td style="font-size:.8rem;color:var(--gray-500)">#{{ nf.empenho.numero }}</td>
+            <td class="text-right" style="font-weight:700">{{ nf.valor | brl }}</td>
+            <td style="font-size:.82rem;color:var(--gray-500)">{{ nf.data | fmt_date or '–' }}</td>
+            <td>
+              <span class="badge
+                {% if nf.situacao == 'PAGO' %}badge-pago
+                {% elif nf.situacao == 'CANCELADA' %}badge-cancelada
+                {% else %}badge-pendente{% endif %}" style="font-size:.68rem">
+                {{ nf.situacao }}
+              </span>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="empty-state" style="padding:32px">
+        <i class="bi bi-file-earmark-x" style="font-size:1.5rem"></i>
+        <h3 style="font-size:.85rem">Nenhuma NF neste mês</h3>
+        <p></p>
       </div>
+      {% endif %}
     </div>
   </div>
 </div>
 
+<!-- Histórico de saídas -->
+<div class="card">
+  <div class="card-header">
+    <h2><i class="bi bi-clock-history" style="color:var(--gray-500);margin-right:6px"></i>Histórico de Saídas (todas)</h2>
+  </div>
+  <div class="card-body-flush">
+    {% if todas_saidas %}
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Destino</th>
+            <th>Observação</th>
+            <th class="text-right">Valor</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in todas_saidas %}
+          <tr>
+            <td style="font-size:.82rem;color:var(--gray-500)">{{ s.data | fmt_date }}</td>
+            <td style="font-weight:500">{{ s.destino or '–' }}</td>
+            <td style="font-size:.78rem;color:var(--gray-400)">{{ s.observacao or '' }}</td>
+            <td class="text-right" style="font-weight:700;color:var(--red)">{{ s.valor | brl }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-arrow-down-circle"></i>
+      <h3>Nenhuma saída registrada</h3>
+      <p>Registre as despesas e saídas financeiras da empresa</p>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% endblock %}
+
+{% block modals %}
 <!-- Modal Nova Saída -->
-<div class="modal fade" id="modalSaida" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Registrar Saída</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-      </div>
-      <form method="post" action="{{ url_for('saida_nova') }}">
-        <div class="modal-body">
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Data <span class="text-danger">*</span></label>
+<div class="modal-overlay" id="modalSaida">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h3><i class="bi bi-arrow-down-circle" style="color:var(--red);margin-right:6px"></i>Registrar Saída</h3>
+      <button class="btn-icon" onclick="closeModal('modalSaida')"><i class="bi bi-x-lg"></i></button>
+    </div>
+    <form method="post" action="{{ url_for('saida_nova') }}">
+      <div class="modal-body">
+        <div class="field-grid fg-2" style="margin-bottom:14px">
+          <div>
+            <label class="field-label">Data <span class="req">*</span></label>
             <input type="date" name="data" class="form-control" required>
           </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Valor (R$) <span class="text-danger">*</span></label>
+          <div>
+            <label class="field-label">Valor (R$) <span class="req">*</span></label>
             <input type="number" step="0.01" name="valor" class="form-control" required placeholder="0,00">
           </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Destino</label>
-            <input type="text" name="destino" class="form-control" placeholder="Ex: Compras Base Aérea">
-          </div>
-          <div class="mb-3">
-            <label class="form-label fw-semibold">Observação</label>
-            <textarea name="observacao" class="form-control" rows="2"></textarea>
-          </div>
         </div>
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-danger">Registrar Saída</button>
+        <div style="margin-bottom:14px">
+          <label class="field-label">Destino / Descrição</label>
+          <input type="text" name="destino" class="form-control" placeholder="Ex: Compras Base Aérea">
         </div>
-      </form>
-    </div>
+        <div>
+          <label class="field-label">Observação</label>
+          <textarea name="observacao" class="form-control" rows="2"></textarea>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-ghost" onclick="closeModal('modalSaida')">Cancelar</button>
+        <button type="submit" class="btn btn-danger">
+          <i class="bi bi-check-lg"></i> Registrar Saída
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 {% endblock %}

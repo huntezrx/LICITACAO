@@ -1,50 +1,46 @@
 {% extends 'base.html' %}
-{% block title %}Agenda de Pregões{% endblock %}
+{% block title %}Agenda de Pregões – LicitaPro{% endblock %}
 {% block page_title %}Agenda de Pregões{% endblock %}
 
-{% block topbar_actions %}
+{% block topbar %}
   <a href="{{ url_for('pregao_novo') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg me-1"></i>Novo Pregão
+    <i class="bi bi-plus-lg"></i> Novo Pregão
   </a>
 {% endblock %}
 
 {% block content %}
-<div class="card shadow-sm">
-  <div class="card-header bg-white">
-    <form class="row g-2" method="get">
-      <div class="col-md-5">
-        <div class="input-group input-group-sm">
-          <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="text" name="q" class="form-control" placeholder="Buscar órgão, objeto, UASG…" value="{{ q }}">
-        </div>
-      </div>
-      <div class="col-md-3">
-        <select name="status" class="form-select form-select-sm">
-          <option value="">Todos os status</option>
-          {% for s in ['AGENDADO', 'PARTICIPANDO', 'GANHO', 'PERDIDO', 'CANCELADO'] %}
-          <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div class="col-auto">
-        <button class="btn btn-outline-secondary btn-sm">Filtrar</button>
-        {% if q or status %}<a href="{{ url_for('pregoes_index') }}" class="btn btn-sm btn-link">Limpar</a>{% endif %}
-      </div>
-    </form>
-  </div>
-  <div class="card-body p-0">
+
+<!-- Toolbar -->
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+  <form method="get" style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap">
+    <label class="search-bar">
+      <i class="bi bi-search"></i>
+      <input type="text" name="q" placeholder="Buscar órgão, UASG, objeto…" value="{{ q }}">
+    </label>
+    <div class="filter-tabs">
+      <a href="{{ url_for('pregoes_index', q=q) }}" class="filter-tab {{ 'active' if not status }}">Todos</a>
+      {% for s in ['AGENDADO','PARTICIPANDO','GANHO','PERDIDO','CANCELADO'] %}
+      <a href="{{ url_for('pregoes_index', q=q, status=s) }}"
+         class="filter-tab {{ 'active' if status == s }}">{{ s }}</a>
+      {% endfor %}
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-body-flush">
     {% if pregoes %}
-    <div class="table-responsive">
-      <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light">
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
           <tr>
             <th>Data / Hora</th>
             <th>Órgão</th>
             <th>UASG</th>
             <th>Objeto</th>
-            <th class="text-end">Valor</th>
-            <th>Atestado</th>
-            <th>Resp.</th>
+            <th class="text-right">Valor</th>
+            <th class="text-center">Atestado</th>
+            <th>Responsável</th>
             <th>Status</th>
             <th></th>
           </tr>
@@ -52,32 +48,56 @@
         <tbody>
           {% for p in pregoes %}
           <tr>
-            <td class="fw-semibold small">{{ p.data_horario | fmt_datetime if p.data_horario else '–' }}</td>
-            <td>{{ p.orgao }}</td>
-            <td class="text-muted small">{{ p.uasg or '–' }}</td>
-            <td style="max-width:200px;font-size:.85rem">{{ p.objeto | truncate(60) if p.objeto }}</td>
-            <td class="text-end fw-semibold">{{ p.valor | brl if p.valor else '–' }}</td>
+            <td>
+              <div style="font-weight:700;color:var(--blue)">
+                {{ p.data_horario | fmt_datetime if p.data_horario else '–' }}
+              </div>
+              {% if p.forma %}
+              <div style="font-size:.72rem;color:var(--gray-400);margin-top:1px">{{ p.forma }}</div>
+              {% endif %}
+            </td>
+            <td style="font-weight:600;color:var(--gray-900)">{{ p.orgao }}</td>
+            <td style="color:var(--gray-400);font-size:.8rem">{{ p.uasg or '–' }}</td>
+            <td style="max-width:200px;font-size:.82rem;color:var(--gray-600)">
+              {{ p.objeto | truncate(60) if p.objeto else '–' }}
+            </td>
+            <td class="text-right" style="font-weight:700">
+              {{ p.valor | brl if p.valor else '–' }}
+            </td>
             <td class="text-center">
               {% if p.exige_atestado %}
-              <span class="badge bg-warning text-dark">Sim{% if p.percentagem_atestado %} {{ p.percentagem_atestado }}%{% endif %}</span>
-              {% else %}<span class="text-muted small">Não</span>{% endif %}
+              <span class="badge badge-pendente">
+                <i class="bi bi-file-text"></i>
+                Sim{% if p.percentagem_atestado %} {{ p.percentagem_atestado | int }}%{% endif %}
+              </span>
+              {% else %}
+              <span style="color:var(--gray-300);font-size:.78rem">Não</span>
+              {% endif %}
             </td>
-            <td class="small">{{ p.responsavel or '–' }}</td>
+            <td style="font-size:.83rem;color:var(--gray-600)">{{ p.responsavel or '–' }}</td>
             <td>
-              <span class="badge rounded-pill
+              <span class="badge
                 {% if p.status == 'GANHO' %}badge-ganho
                 {% elif p.status == 'PERDIDO' %}badge-perdido
                 {% elif p.status == 'AGENDADO' %}badge-agendado
-                {% else %}bg-secondary{% endif %}">{{ p.status }}</span>
+                {% elif p.status == 'PARTICIPANDO' %}badge-participando
+                {% else %}badge-cancelado{% endif %}">
+                {% if p.status == 'GANHO' %}<i class="bi bi-trophy-fill"></i>
+                {% elif p.status == 'PERDIDO' %}<i class="bi bi-x-circle"></i>
+                {% elif p.status == 'AGENDADO' %}<i class="bi bi-clock"></i>
+                {% elif p.status == 'PARTICIPANDO' %}<i class="bi bi-play-fill"></i>
+                {% else %}<i class="bi bi-slash-circle"></i>{% endif %}
+                {{ p.status }}
+              </span>
             </td>
             <td>
-              <div class="d-flex gap-1">
-                <a href="{{ url_for('pregao_editar', id=p.id) }}" class="btn btn-xs btn-outline-secondary"
-                   style="padding:.2rem .4rem;font-size:.75rem"><i class="bi bi-pencil"></i></a>
+              <div class="action-row">
+                <a href="{{ url_for('pregao_editar', id=p.id) }}" class="btn-icon" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
                 <form method="post" action="{{ url_for('pregao_excluir', id=p.id) }}"
                       onsubmit="return confirm('Excluir pregão?')">
-                  <button class="btn btn-xs btn-outline-danger"
-                          style="padding:.2rem .4rem;font-size:.75rem"><i class="bi bi-trash"></i></button>
+                  <button class="btn-icon danger" title="Excluir"><i class="bi bi-trash"></i></button>
                 </form>
               </div>
             </td>
@@ -87,12 +107,15 @@
       </table>
     </div>
     {% else %}
-    <div class="p-5 text-center text-muted">
-      <i class="bi bi-calendar-x display-4 d-block mb-3"></i>
-      Nenhum pregão encontrado.
-      <div class="mt-2">
-        <a href="{{ url_for('pregao_novo') }}" class="btn btn-primary btn-sm">Cadastrar pregão</a>
-      </div>
+    <div class="empty-state">
+      <i class="bi bi-calendar-x"></i>
+      <h3>Nenhum pregão encontrado</h3>
+      <p>{% if q or status %}Tente ajustar os filtros{% else %}Cadastre o próximo pregão da empresa{% endif %}</p>
+      {% if not q and not status %}
+      <a href="{{ url_for('pregao_novo') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Novo Pregão
+      </a>
+      {% endif %}
     </div>
     {% endif %}
   </div>

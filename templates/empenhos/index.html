@@ -1,50 +1,46 @@
 {% extends 'base.html' %}
-{% block title %}Empenhos{% endblock %}
+{% block title %}Empenhos – LicitaPro{% endblock %}
 {% block page_title %}Empenhos{% endblock %}
 
-{% block topbar_actions %}
+{% block topbar %}
   <a href="{{ url_for('empenho_novo') }}" class="btn btn-primary btn-sm">
-    <i class="bi bi-plus-lg me-1"></i> Novo Empenho
+    <i class="bi bi-plus-lg"></i> Novo Empenho
   </a>
 {% endblock %}
 
 {% block content %}
-<div class="card shadow-sm">
-  <div class="card-header bg-white">
-    <form class="row g-2" method="get">
-      <div class="col-md-5">
-        <div class="input-group input-group-sm">
-          <span class="input-group-text"><i class="bi bi-search"></i></span>
-          <input type="text" name="q" class="form-control" placeholder="Buscar por número, órgão ou objeto…" value="{{ q }}">
-        </div>
-      </div>
-      <div class="col-md-3">
-        <select name="status" class="form-select form-select-sm">
-          <option value="">Todas as situações</option>
-          <option value="FALTA ENTREGAR" {% if status == 'FALTA ENTREGAR' %}selected{% endif %}>Falta Entregar</option>
-          <option value="ENTREGUE PARCIAL" {% if status == 'ENTREGUE PARCIAL' %}selected{% endif %}>Entregue Parcial</option>
-          <option value="ENTREGUE" {% if status == 'ENTREGUE' %}selected{% endif %}>Entregue</option>
-        </select>
-      </div>
-      <div class="col-auto">
-        <button class="btn btn-outline-secondary btn-sm" type="submit">Filtrar</button>
-        {% if q or status %}<a href="{{ url_for('empenhos_index') }}" class="btn btn-sm btn-link">Limpar</a>{% endif %}
-      </div>
-    </form>
-  </div>
-  <div class="card-body p-0">
+
+<!-- Toolbar -->
+<div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap">
+  <form method="get" style="display:flex;align-items:center;gap:10px;flex:1;flex-wrap:wrap">
+    <label class="search-bar" style="max-width:340px">
+      <i class="bi bi-search"></i>
+      <input type="text" name="q" placeholder="Buscar por número, órgão ou objeto…" value="{{ q }}">
+    </label>
+
+    <div class="filter-tabs">
+      <a href="{{ url_for('empenhos_index', q=q) }}" class="filter-tab {{ 'active' if not status }}">Todos</a>
+      <a href="{{ url_for('empenhos_index', q=q, status='FALTA ENTREGAR') }}" class="filter-tab {{ 'active' if status == 'FALTA ENTREGAR' }}">Pendentes</a>
+      <a href="{{ url_for('empenhos_index', q=q, status='ENTREGUE PARCIAL') }}" class="filter-tab {{ 'active' if status == 'ENTREGUE PARCIAL' }}">Parcial</a>
+      <a href="{{ url_for('empenhos_index', q=q, status='ENTREGUE') }}" class="filter-tab {{ 'active' if status == 'ENTREGUE' }}">Entregues</a>
+    </div>
+  </form>
+</div>
+
+<div class="card">
+  <div class="card-body-flush">
     {% if empenhos %}
-    <div class="table-responsive">
-      <table class="table table-hover mb-0 align-middle">
-        <thead class="table-light">
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
           <tr>
             <th>Nº Empenho</th>
             <th>Órgão / UASG</th>
-            <th>Data</th>
-            <th>Itens</th>
-            <th class="text-end">Total Venda</th>
-            <th class="text-end">Lucro</th>
-            <th class="text-end">Pendente</th>
+            <th>Data Emissão</th>
+            <th class="text-center">Itens</th>
+            <th class="text-right">Total Venda</th>
+            <th class="text-right">Lucro</th>
+            <th class="text-right">Pendente</th>
             <th>Situação</th>
             <th></th>
           </tr>
@@ -53,40 +49,50 @@
           {% for e in empenhos %}
           {% set s = e.situacao_geral %}
           <tr>
-            <td class="fw-semibold">{{ e.numero }}</td>
             <td>
-              <div>{{ e.orgao or '–' }}</div>
-              {% if e.uasg %}<small class="text-muted">UASG {{ e.uasg }}</small>{% endif %}
+              <span style="font-size:.95rem;font-weight:800;color:var(--gray-900)">#{{ e.numero }}</span>
             </td>
-            <td class="text-muted small">{{ e.data_emissao | fmt_date }}</td>
             <td>
-              <span class="badge bg-secondary rounded-pill">{{ e.itens | length }}</span>
+              <div style="font-weight:600;color:var(--gray-900)">{{ e.orgao or '–' }}</div>
+              {% if e.uasg %}<div style="font-size:.72rem;color:var(--gray-400);margin-top:1px">UASG {{ e.uasg }}</div>{% endif %}
             </td>
-            <td class="text-end fw-semibold">{{ e.total_venda | brl }}</td>
-            <td class="text-end fw-semibold {{ 'text-danger' if e.lucro_total < 0 else 'text-success' }}">
-              {{ e.lucro_total | brl }}
+            <td style="color:var(--gray-500);font-size:.82rem">{{ e.data_emissao | fmt_date or '–' }}</td>
+            <td class="text-center">
+              <span style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;background:var(--gray-100);border-radius:50%;font-size:.75rem;font-weight:700;color:var(--gray-600)">
+                {{ e.itens | length }}
+              </span>
             </td>
-            <td class="text-end">
+            <td class="text-right" style="font-weight:700;color:var(--gray-900)">{{ e.total_venda | brl }}</td>
+            <td class="text-right">
+              <span class="{{ 'profit-neg' if e.lucro_total < 0 else 'profit-pos' }}">{{ e.lucro_total | brl }}</span>
+            </td>
+            <td class="text-right">
               {% if e.total_pendente > 0 %}
-              <span class="text-warning fw-semibold">{{ e.total_pendente | brl }}</span>
-              {% else %}<span class="text-muted">–</span>{% endif %}
+              <span style="font-weight:700;color:var(--yellow)">{{ e.total_pendente | brl }}</span>
+              {% else %}<span style="color:var(--gray-300)">–</span>{% endif %}
             </td>
             <td>
-              <span class="badge rounded-pill
+              <span class="badge
                 {% if s == 'ENTREGUE' %}badge-entregue
                 {% elif s == 'ENTREGUE PARCIAL' %}badge-parcial
-                {% else %}badge-falta{% endif %}">{{ s }}</span>
+                {% else %}badge-falta{% endif %}">
+                {% if s == 'ENTREGUE' %}<i class="bi bi-check-lg"></i>
+                {% elif s == 'ENTREGUE PARCIAL' %}<i class="bi bi-dash-lg"></i>
+                {% else %}<i class="bi bi-clock"></i>{% endif %}
+                {{ s }}
+              </span>
             </td>
             <td>
-              <div class="d-flex gap-1">
-                <a href="{{ url_for('empenho_detalhe', id=e.id) }}" class="btn btn-sm btn-outline-primary" title="Ver">
+              <div class="action-row">
+                <a href="{{ url_for('empenho_detalhe', id=e.id) }}" class="btn-icon" title="Ver detalhe">
                   <i class="bi bi-eye"></i>
                 </a>
-                <a href="{{ url_for('empenho_editar', id=e.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                <a href="{{ url_for('empenho_editar', id=e.id) }}" class="btn-icon" title="Editar">
                   <i class="bi bi-pencil"></i>
                 </a>
-                <form method="post" action="{{ url_for('empenho_excluir', id=e.id) }}" onsubmit="return confirm('Excluir empenho {{ e.numero }}?')">
-                  <button class="btn btn-sm btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></button>
+                <form method="post" action="{{ url_for('empenho_excluir', id=e.id) }}"
+                      onsubmit="return confirm('Excluir empenho #{{ e.numero }}?')">
+                  <button class="btn-icon danger" title="Excluir"><i class="bi bi-trash"></i></button>
                 </form>
               </div>
             </td>
@@ -96,12 +102,15 @@
       </table>
     </div>
     {% else %}
-    <div class="p-5 text-center text-muted">
-      <i class="bi bi-receipt display-4 d-block mb-3"></i>
-      Nenhum empenho encontrado.
-      <div class="mt-2">
-        <a href="{{ url_for('empenho_novo') }}" class="btn btn-primary btn-sm">Cadastrar primeiro empenho</a>
-      </div>
+    <div class="empty-state">
+      <i class="bi bi-receipt"></i>
+      <h3>Nenhum empenho encontrado</h3>
+      <p>{% if q or status %}Tente ajustar os filtros de busca{% else %}Cadastre o primeiro empenho da empresa{% endif %}</p>
+      {% if not q and not status %}
+      <a href="{{ url_for('empenho_novo') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Novo Empenho
+      </a>
+      {% endif %}
     </div>
     {% endif %}
   </div>

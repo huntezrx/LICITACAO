@@ -1,218 +1,256 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard – Licitações{% endblock %}
+{% block title %}Dashboard – LicitaPro{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
-{% block topbar_actions %}
-  <span class="text-muted small" id="today-date"></span>
+{% block topbar %}
+  <span style="font-size:.78rem;color:var(--gray-400)" id="today-date"></span>
 {% endblock %}
 
 {% block content %}
-<!-- Stats row -->
-<div class="row g-3 mb-4">
-  <div class="col-6 col-md-3">
-    <div class="card stat-card shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="icon" style="background:#dbeafe;color:#1d4ed8"><i class="bi bi-receipt-cutoff"></i></div>
-        <div>
-          <div class="fw-bold fs-4">{{ total_empenhos }}</div>
-          <div class="text-muted small">Empenhos</div>
-        </div>
-      </div>
+
+<!-- KPIs -->
+<div class="kpi-grid">
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#dbeafe;color:#1d4ed8">
+      <i class="bi bi-receipt-cutoff"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Empenhos</div>
+      <div class="kpi-value">{{ total_empenhos }}</div>
+      <div class="kpi-sub">contratos ativos</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card stat-card shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="icon" style="background:#d1fae5;color:#065f46"><i class="bi bi-arrow-up-circle"></i></div>
-        <div>
-          <div class="fw-bold fs-5">{{ total_venda | brl }}</div>
-          <div class="text-muted small">Total de Vendas</div>
-        </div>
-      </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#dcfce7;color:#15803d">
+      <i class="bi bi-graph-up-arrow"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Total Vendas</div>
+      <div class="kpi-value" style="font-size:1.15rem">{{ total_venda | brl }}</div>
+      <div class="kpi-sub">em empenhos</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card stat-card shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="icon" style="background:#fef9c3;color:#92400e"><i class="bi bi-hourglass-split"></i></div>
-        <div>
-          <div class="fw-bold fs-5">{{ total_pendente | brl }}</div>
-          <div class="text-muted small">A Receber (Pendente)</div>
-        </div>
-      </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#fef9c3;color:#a16207">
+      <i class="bi bi-hourglass-split"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">A Receber</div>
+      <div class="kpi-value" style="font-size:1.15rem;color:#d97706">{{ total_pendente | brl }}</div>
+      <div class="kpi-sub">notas pendentes</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card stat-card shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="icon" style="background:{% if lucro_total >= 0 %}#d1fae5;color:#065f46{% else %}#fee2e2;color:#991b1b{% endif %}"><i class="bi bi-graph-up"></i></div>
-        <div>
-          <div class="fw-bold fs-5 {% if lucro_total < 0 %}text-danger{% endif %}">{{ lucro_total | brl }}</div>
-          <div class="text-muted small">Lucro Total</div>
-        </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:{% if lucro_total >= 0 %}#dcfce7;color:#15803d{% else %}#fee2e2;color:#b91c1c{% endif %}">
+      <i class="bi bi-{% if lucro_total >= 0 %}arrow-up{% else %}arrow-down{% endif %}-circle-fill"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Lucro Total</div>
+      <div class="kpi-value {{ 'profit-neg' if lucro_total < 0 else 'profit-pos' }}" style="font-size:1.15rem">
+        {{ lucro_total | brl }}
       </div>
+      <div class="kpi-sub">venda − custo</div>
     </div>
   </div>
 </div>
 
-<!-- Second row -->
-<div class="row g-3 mb-4">
-  <div class="col-6 col-md-3">
-    <div class="card stat-card shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="icon" style="background:#d1fae5;color:#065f46"><i class="bi bi-check-circle"></i></div>
-        <div>
-          <div class="fw-bold fs-5">{{ total_pago | brl }}</div>
-          <div class="text-muted small">Total Recebido</div>
-        </div>
-      </div>
+<!-- Row 2 KPIs -->
+<div class="kpi-grid" style="margin-bottom:28px">
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#dcfce7;color:#15803d">
+      <i class="bi bi-check-circle-fill"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Recebido</div>
+      <div class="kpi-value" style="font-size:1.15rem">{{ total_pago | brl }}</div>
+      <div class="kpi-sub">notas pagas</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card stat-card shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="icon" style="background:#fee2e2;color:#991b1b"><i class="bi bi-exclamation-triangle"></i></div>
-        <div>
-          <div class="fw-bold fs-4">{{ itens_custo_alto }}</div>
-          <div class="text-muted small">Itens c/ Custo Alto</div>
-        </div>
-      </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#fee2e2;color:#b91c1c">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Custo Alto</div>
+      <div class="kpi-value">{{ itens_custo_alto }}</div>
+      <div class="kpi-sub">itens com prejuízo</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card stat-card shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="icon" style="background:#dbeafe;color:#1d4ed8"><i class="bi bi-calendar-event"></i></div>
-        <div>
-          <div class="fw-bold fs-4">{{ pregoes_agendados }}</div>
-          <div class="text-muted small">Pregões Agendados</div>
-        </div>
-      </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#dbeafe;color:#1d4ed8">
+      <i class="bi bi-calendar-event-fill"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Pregões</div>
+      <div class="kpi-value">{{ pregoes_agendados }}</div>
+      <div class="kpi-sub">agendados</div>
     </div>
   </div>
-  <div class="col-6 col-md-3">
-    <div class="card stat-card shadow-sm h-100">
-      <div class="card-body d-flex align-items-center gap-3">
-        <div class="icon" style="background:#fef9c3;color:#92400e"><i class="bi bi-truck"></i></div>
-        <div>
-          <div class="fw-bold fs-4">{{ itens_pendentes }}</div>
-          <div class="text-muted small">Entregas Pendentes</div>
-        </div>
-      </div>
+
+  <div class="kpi-card">
+    <div class="kpi-icon" style="background:#fef9c3;color:#a16207">
+      <i class="bi bi-truck"></i>
+    </div>
+    <div class="kpi-body">
+      <div class="kpi-label">Entregas</div>
+      <div class="kpi-value">{{ itens_pendentes }}</div>
+      <div class="kpi-sub">itens pendentes</div>
     </div>
   </div>
 </div>
 
-<div class="row g-3">
-  <!-- Chart -->
-  <div class="col-lg-7">
-    <div class="card shadow-sm">
-      <div class="card-header bg-white fw-semibold">Notas Fiscais Emitidas (últimos meses)</div>
-      <div class="card-body">
-        <canvas id="chartNFs" height="120"></canvas>
-      </div>
+<!-- Chart + Pregoes -->
+<div style="display:grid;grid-template-columns:1fr 380px;gap:20px;margin-bottom:20px">
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="bi bi-bar-chart-fill" style="color:var(--blue);margin-right:6px"></i>Notas Fiscais por Mês</h2>
+    </div>
+    <div class="card-body">
+      <canvas id="chartNFs" height="140"></canvas>
     </div>
   </div>
 
-  <!-- Próximos pregões -->
-  <div class="col-lg-5">
-    <div class="card shadow-sm h-100">
-      <div class="card-header bg-white d-flex align-items-center justify-content-between">
-        <span class="fw-semibold">Próximos Pregões</span>
-        <a href="{{ url_for('pregoes_index') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+  <div class="card">
+    <div class="card-header">
+      <h2><i class="bi bi-calendar-week" style="color:var(--blue);margin-right:6px"></i>Próximos Pregões</h2>
+      <a href="{{ url_for('pregoes_index') }}" class="btn btn-ghost btn-sm">Ver todos</a>
+    </div>
+    <div class="card-body-flush">
+      {% if pregoes_proximos %}
+      {% for p in pregoes_proximos %}
+      <div style="padding:12px 18px;{% if not loop.last %}border-bottom:1px solid var(--gray-100){% endif %}">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px">
+          <div>
+            <div style="font-size:.85rem;font-weight:700;color:var(--gray-900)">{{ p.orgao }}</div>
+            <div style="font-size:.74rem;color:var(--gray-400);margin-top:2px">{{ p.objeto | truncate(45) if p.objeto else '–' }}</div>
+          </div>
+          <div style="text-align:right;flex-shrink:0">
+            <div style="font-size:.76rem;font-weight:700;color:var(--blue)">{{ p.data_horario | fmt_datetime if p.data_horario else '–' }}</div>
+            <span class="badge badge-agendado" style="margin-top:4px">{{ p.status }}</span>
+          </div>
+        </div>
       </div>
-      <div class="card-body p-0">
-        {% if pregoes_proximos %}
-        <ul class="list-group list-group-flush">
-          {% for p in pregoes_proximos %}
-          <li class="list-group-item d-flex justify-content-between align-items-start">
-            <div>
-              <div class="fw-semibold small">{{ p.orgao }}</div>
-              <div class="text-muted" style="font-size:.78rem">{{ p.objeto | truncate(50) if p.objeto }}</div>
-            </div>
-            <div class="text-end">
-              <div class="small text-primary fw-semibold">{{ p.data_horario | fmt_datetime if p.data_horario }}</div>
-              <span class="badge badge-agendado rounded-pill">{{ p.status }}</span>
-            </div>
-          </li>
+      {% endfor %}
+      {% else %}
+      <div style="padding:32px 18px;text-align:center;color:var(--gray-400);font-size:.83rem">
+        <i class="bi bi-calendar-x" style="font-size:1.5rem;display:block;margin-bottom:8px"></i>
+        Nenhum pregão agendado
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Empenhos recentes -->
+<div class="card">
+  <div class="card-header">
+    <h2><i class="bi bi-receipt" style="color:var(--blue);margin-right:6px"></i>Empenhos Recentes</h2>
+    <a href="{{ url_for('empenhos_index') }}" class="btn btn-ghost btn-sm">Ver todos</a>
+  </div>
+  <div class="card-body-flush">
+    {% if empenhos_recentes %}
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nº Empenho</th>
+            <th>Órgão</th>
+            <th class="text-right">Total Venda</th>
+            <th class="text-right">Lucro</th>
+            <th>Situação</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in empenhos_recentes %}
+          {% set s = e.situacao_geral %}
+          <tr>
+            <td><span style="font-weight:700;color:var(--gray-900)">#{{ e.numero }}</span></td>
+            <td>
+              <div style="font-weight:500">{{ e.orgao or '–' }}</div>
+              {% if e.uasg %}<div style="font-size:.72rem;color:var(--gray-400)">UASG {{ e.uasg }}</div>{% endif %}
+            </td>
+            <td class="text-right" style="font-weight:700">{{ e.total_venda | brl }}</td>
+            <td class="text-right">
+              <span class="{{ 'profit-neg' if e.lucro_total < 0 else 'profit-pos' }}">{{ e.lucro_total | brl }}</span>
+            </td>
+            <td>
+              <span class="badge
+                {% if s == 'ENTREGUE' %}badge-entregue
+                {% elif s == 'ENTREGUE PARCIAL' %}badge-parcial
+                {% else %}badge-falta{% endif %}">
+                {% if s == 'ENTREGUE' %}<i class="bi bi-check-lg"></i>{% elif s == 'ENTREGUE PARCIAL' %}<i class="bi bi-dash-lg"></i>{% else %}<i class="bi bi-clock"></i>{% endif %}
+                {{ s }}
+              </span>
+            </td>
+            <td>
+              <a href="{{ url_for('empenho_detalhe', id=e.id) }}" class="btn btn-ghost btn-xs">
+                <i class="bi bi-arrow-right"></i> Ver
+              </a>
+            </td>
+          </tr>
           {% endfor %}
-        </ul>
-        {% else %}
-        <div class="p-3 text-muted text-center small">Nenhum pregão agendado.</div>
-        {% endif %}
-      </div>
+        </tbody>
+      </table>
     </div>
-  </div>
-
-  <!-- Empenhos recentes -->
-  <div class="col-12">
-    <div class="card shadow-sm">
-      <div class="card-header bg-white d-flex align-items-center justify-content-between">
-        <span class="fw-semibold">Empenhos Recentes</span>
-        <a href="{{ url_for('empenhos_index') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
-      </div>
-      <div class="card-body p-0">
-        {% if empenhos_recentes %}
-        <div class="table-responsive">
-          <table class="table table-hover mb-0">
-            <thead class="table-light">
-              <tr>
-                <th>Nº Empenho</th><th>Órgão</th><th>Total Venda</th>
-                <th>Lucro</th><th>Situação</th><th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for e in empenhos_recentes %}
-              <tr>
-                <td class="fw-semibold">{{ e.numero }}</td>
-                <td>{{ e.orgao or '–' }}</td>
-                <td>{{ e.total_venda | brl }}</td>
-                <td class="{{ 'text-danger fw-bold' if e.lucro_total < 0 else 'text-success fw-bold' }}">{{ e.lucro_total | brl }}</td>
-                <td>
-                  {% set s = e.situacao_geral %}
-                  <span class="badge rounded-pill
-                    {% if s == 'ENTREGUE' %}badge-entregue
-                    {% elif s == 'ENTREGUE PARCIAL' %}badge-parcial
-                    {% elif s == 'FALTA ENTREGAR' %}badge-falta
-                    {% else %}bg-secondary{% endif %}">{{ s }}</span>
-                </td>
-                <td><a href="{{ url_for('empenho_detalhe', id=e.id) }}" class="btn btn-sm btn-outline-secondary">Ver</a></td>
-              </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-        {% else %}
-        <div class="p-3 text-muted text-center">Nenhum empenho cadastrado ainda.</div>
-        {% endif %}
-      </div>
+    {% else %}
+    <div class="empty-state">
+      <i class="bi bi-receipt"></i>
+      <h3>Nenhum empenho ainda</h3>
+      <p>Comece cadastrando o primeiro empenho da empresa</p>
+      <a href="{{ url_for('empenho_novo') }}" class="btn btn-primary btn-sm">
+        <i class="bi bi-plus-lg"></i> Novo Empenho
+      </a>
     </div>
+    {% endif %}
   </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 <script>
-document.getElementById('today-date').textContent = new Date().toLocaleDateString('pt-BR');
+document.getElementById('today-date').textContent =
+  new Date().toLocaleDateString('pt-BR', {weekday:'long', year:'numeric', month:'long', day:'numeric'});
+
+Chart.defaults.font.family = 'Inter, sans-serif';
 const ctx = document.getElementById('chartNFs').getContext('2d');
 new Chart(ctx, {
   type: 'bar',
   data: {
     labels: {{ meses_labels | tojson }},
     datasets: [{
-      label: 'Notas Fiscais (R$)',
+      label: 'Notas Fiscais',
       data: {{ meses_venda | tojson }},
-      backgroundColor: 'rgba(37,99,235,.7)',
-      borderRadius: 6,
+      backgroundColor: 'rgba(37,99,235,.85)',
+      borderRadius: 7,
+      borderSkipped: false,
     }]
   },
   options: {
     responsive: true,
-    plugins: { legend: { display: false } },
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: ctx => ' R$ ' + ctx.raw.toLocaleString('pt-BR', {minimumFractionDigits:2})
+        }
+      }
+    },
     scales: {
       y: {
-        ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR') }
-      }
+        grid: { color: '#f1f5f9' },
+        ticks: {
+          callback: v => 'R$ ' + (v/1000).toFixed(0) + 'k',
+          font: { size: 11 }
+        }
+      },
+      x: { grid: { display: false }, ticks: { font: { size: 11 } } }
     }
   }
 });
