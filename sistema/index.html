@@ -386,13 +386,13 @@ body{font-family:'Segoe UI',system-ui,-apple-system,sans-serif;background:var(--
    AUTH
 ══════════════════════════════════════════════════════════ */
 const sess = JSON.parse(sessionStorage.getItem('lp_session') || 'null');
-if(!sess) location.href = 'login.html';
+if(!sess) location.href = '/sistema/login.html';
 document.getElementById('sb-avatar').textContent = sess?.initials || '?';
 document.getElementById('sb-name').textContent = sess?.name || '–';
 function logout(){
   if(confirm('Deseja sair do sistema?')){
     sessionStorage.removeItem('lp_session');
-    location.href = 'login.html';
+    location.href = '/sistema/login.html';
   }
 }
 

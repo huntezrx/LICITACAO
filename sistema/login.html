@@ -168,7 +168,7 @@ function doLogin(){
     err.style.display='none';
     sessionStorage.setItem('lp_session',JSON.stringify({id:found.id,name:found.name,initials:found.initials,role:found.role}));
     document.querySelector('.btn-login').textContent='✓ Redirecionando...';
-    setTimeout(()=>location.href='index.html',400);
+    setTimeout(()=>location.href='/sistema/index.html',400);
   } else {
     err.style.display='block';
     document.getElementById('pwd').value='';
@@ -184,7 +184,7 @@ function togglePw(){
 }
 
 document.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
-if(sessionStorage.getItem('lp_session'))location.href='index.html';
+if(sessionStorage.getItem('lp_session'))location.href='/sistema/index.html';
 
 // Particles
 (function(){
