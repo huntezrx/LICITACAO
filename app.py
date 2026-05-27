@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, send_from_directory
 from extensions import db
 from models import Empenho, ItemEmpenho, NotaFiscal, Pregao, SaidaFinanceira
 from datetime import datetime, date
@@ -36,9 +36,28 @@ def parse_float(s):
         return 0.0
 
 
+# ──────────────────────── SISTEMA PREMIUM (HTML estático) ────────────────────────
+
+@app.route('/sistema')
+@app.route('/sistema/')
+def sistema():
+    return send_from_directory('sistema', 'login.html')
+
+@app.route('/sistema/login.html')
+def sistema_login():
+    return send_from_directory('sistema', 'login.html')
+
+@app.route('/sistema/index.html')
+def sistema_index():
+    return send_from_directory('sistema', 'index.html')
+
 # ──────────────────────── DASHBOARD ────────────────────────
 
 @app.route('/')
+def root_redirect():
+    return redirect('/sistema')
+
+@app.route('/dashboard')
 def dashboard():
     total_empenhos = Empenho.query.count()
     empenhos = Empenho.query.all()
