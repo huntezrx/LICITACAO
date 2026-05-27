@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if empenho else 'Novo' }} Empenho{% endblock %}
+{% block page_title %}{{ 'Editar' if empenho else 'Novo' }} Empenho{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold">Dados do Empenho</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Nº do Empenho <span class="text-danger">*</span></label>
+            <input type="text" name="numero" class="form-control" required
+                   value="{{ empenho.numero if empenho else '' }}" placeholder="Ex: 695">
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-8">
+              <label class="form-label fw-semibold">Órgão</label>
+              <input type="text" name="orgao" class="form-control"
+                     value="{{ empenho.orgao if empenho else '' }}" placeholder="Nome do órgão público">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">UASG</label>
+              <input type="text" name="uasg" class="form-control"
+                     value="{{ empenho.uasg if empenho else '' }}" placeholder="Ex: 929458">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Objeto / Descrição</label>
+            <textarea name="objeto" class="form-control" rows="3"
+                      placeholder="Descrição do objeto do empenho">{{ empenho.objeto if empenho else '' }}</textarea>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Data de Emissão</label>
+            <input type="date" name="data_emissao" class="form-control"
+                   value="{{ empenho.data_emissao.strftime('%Y-%m-%d') if empenho and empenho.data_emissao else '' }}">
+          </div>
+
+          <div class="d-flex gap-2 pt-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>{{ 'Salvar Alterações' if empenho else 'Criar Empenho' }}
+            </button>
+            <a href="{{ url_for('empenho_detalhe', id=empenho.id) if empenho else url_for('empenhos_index') }}"
+               class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

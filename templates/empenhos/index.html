@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Empenhos{% endblock %}
+{% block page_title %}Empenhos{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('empenho_novo') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i> Novo Empenho
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header bg-white">
+    <form class="row g-2" method="get">
+      <div class="col-md-5">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="Buscar por número, órgão ou objeto…" value="{{ q }}">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">Todas as situações</option>
+          <option value="FALTA ENTREGAR" {% if status == 'FALTA ENTREGAR' %}selected{% endif %}>Falta Entregar</option>
+          <option value="ENTREGUE PARCIAL" {% if status == 'ENTREGUE PARCIAL' %}selected{% endif %}>Entregue Parcial</option>
+          <option value="ENTREGUE" {% if status == 'ENTREGUE' %}selected{% endif %}>Entregue</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-outline-secondary btn-sm" type="submit">Filtrar</button>
+        {% if q or status %}<a href="{{ url_for('empenhos_index') }}" class="btn btn-sm btn-link">Limpar</a>{% endif %}
+      </div>
+    </form>
+  </div>
+  <div class="card-body p-0">
+    {% if empenhos %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Nº Empenho</th>
+            <th>Órgão / UASG</th>
+            <th>Data</th>
+            <th>Itens</th>
+            <th class="text-end">Total Venda</th>
+            <th class="text-end">Lucro</th>
+            <th class="text-end">Pendente</th>
+            <th>Situação</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for e in empenhos %}
+          {% set s = e.situacao_geral %}
+          <tr>
+            <td class="fw-semibold">{{ e.numero }}</td>
+            <td>
+              <div>{{ e.orgao or '–' }}</div>
+              {% if e.uasg %}<small class="text-muted">UASG {{ e.uasg }}</small>{% endif %}
+            </td>
+            <td class="text-muted small">{{ e.data_emissao | fmt_date }}</td>
+            <td>
+              <span class="badge bg-secondary rounded-pill">{{ e.itens | length }}</span>
+            </td>
+            <td class="text-end fw-semibold">{{ e.total_venda | brl }}</td>
+            <td class="text-end fw-semibold {{ 'text-danger' if e.lucro_total < 0 else 'text-success' }}">
+              {{ e.lucro_total | brl }}
+            </td>
+            <td class="text-end">
+              {% if e.total_pendente > 0 %}
+              <span class="text-warning fw-semibold">{{ e.total_pendente | brl }}</span>
+              {% else %}<span class="text-muted">–</span>{% endif %}
+            </td>
+            <td>
+              <span class="badge rounded-pill
+                {% if s == 'ENTREGUE' %}badge-entregue
+                {% elif s == 'ENTREGUE PARCIAL' %}badge-parcial
+                {% else %}badge-falta{% endif %}">{{ s }}</span>
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('empenho_detalhe', id=e.id) }}" class="btn btn-sm btn-outline-primary" title="Ver">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="{{ url_for('empenho_editar', id=e.id) }}" class="btn btn-sm btn-outline-secondary" title="Editar">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="post" action="{{ url_for('empenho_excluir', id=e.id) }}" onsubmit="return confirm('Excluir empenho {{ e.numero }}?')">
+                  <button class="btn btn-sm btn-outline-danger" title="Excluir"><i class="bi bi-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-5 text-center text-muted">
+      <i class="bi bi-receipt display-4 d-block mb-3"></i>
+      Nenhum empenho encontrado.
+      <div class="mt-2">
+        <a href="{{ url_for('empenho_novo') }}" class="btn btn-primary btn-sm">Cadastrar primeiro empenho</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if nota else 'Nova' }} Nota Fiscal{% endblock %}
+{% block page_title %}{{ 'Editar' if nota else 'Nova' }} Nota Fiscal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-6">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold">
+        Nota Fiscal – Empenho {{ empenho.numero }}
+      </div>
+      <div class="card-body">
+        <form method="post">
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Número da NF</label>
+            <input type="text" name="numero" class="form-control"
+                   value="{{ nota.numero if nota else '' }}" placeholder="Ex: NF 153">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Item Referente (opcional)</label>
+            <select name="item_id" class="form-select">
+              <option value="">– Nenhum / NF geral –</option>
+              {% for it in empenho.itens %}
+              <option value="{{ it.id }}" {{ 'selected' if nota and nota.item_id == it.id }}>
+                {{ it.item_nome }} ({{ it.unidade }})
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="row g-3 mb-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Valor (R$) <span class="text-danger">*</span></label>
+              <input type="number" step="0.01" name="valor" class="form-control" required
+                     value="{{ nota.valor if nota else '' }}" placeholder="0,00">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Data</label>
+              <input type="date" name="data" class="form-control"
+                     value="{{ nota.data.strftime('%Y-%m-%d') if nota and nota.data else '' }}">
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Situação</label>
+            <div class="d-flex gap-3">
+              {% for opt in ['PENDENTE', 'PAGO', 'CANCELADA'] %}
+              <div class="form-check">
+                <input class="form-check-input" type="radio" name="situacao" value="{{ opt }}" id="sit_{{ opt }}"
+                       {{ 'checked' if (nota and nota.situacao == opt) or (not nota and opt == 'PENDENTE') }}>
+                <label class="form-check-label" for="sit_{{ opt }}">{{ opt }}</label>
+              </div>
+              {% endfor %}
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Observação</label>
+            <textarea name="observacao" class="form-control" rows="2">{{ nota.observacao if nota else '' }}</textarea>
+          </div>
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>{{ 'Salvar' if nota else 'Registrar NF' }}
+            </button>
+            <a href="{{ url_for('empenho_detalhe', id=empenho.id) }}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

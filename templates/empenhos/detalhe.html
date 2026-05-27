@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+{% block title %}Empenho {{ empenho.numero }}{% endblock %}
+{% block page_title %}Empenho {{ empenho.numero }}{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('empenho_editar', id=empenho.id) }}" class="btn btn-sm btn-outline-secondary">
+    <i class="bi bi-pencil me-1"></i>Editar
+  </a>
+  <a href="{{ url_for('item_novo', empenho_id=empenho.id) }}" class="btn btn-sm btn-success">
+    <i class="bi bi-plus-lg me-1"></i>Novo Item
+  </a>
+  <a href="{{ url_for('nota_nova', empenho_id=empenho.id) }}" class="btn btn-sm btn-primary">
+    <i class="bi bi-file-earmark-plus me-1"></i>Nova NF
+  </a>
+{% endblock %}
+
+{% block content %}
+<!-- Info cards -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card shadow-sm text-center">
+      <div class="card-body">
+        <div class="text-muted small mb-1">Total de Venda</div>
+        <div class="fw-bold fs-5">{{ empenho.total_venda | brl }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm text-center">
+      <div class="card-body">
+        <div class="text-muted small mb-1">Total de Custo</div>
+        <div class="fw-bold fs-5">{{ empenho.total_custo | brl }}</div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm text-center">
+      <div class="card-body">
+        <div class="text-muted small mb-1">Lucro</div>
+        <div class="fw-bold fs-5 {{ 'text-danger' if empenho.lucro_total < 0 else 'text-success' }}">
+          {{ empenho.lucro_total | brl }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card shadow-sm text-center">
+      <div class="card-body">
+        <div class="text-muted small mb-1">Situação</div>
+        {% set s = empenho.situacao_geral %}
+        <span class="badge rounded-pill fs-6
+          {% if s == 'ENTREGUE' %}badge-entregue
+          {% elif s == 'ENTREGUE PARCIAL' %}badge-parcial
+          {% else %}badge-falta{% endif %}">{{ s }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Header info -->
+<div class="card shadow-sm mb-4">
+  <div class="card-body">
+    <div class="row g-2">
+      <div class="col-md-3"><span class="text-muted small">Órgão:</span><div class="fw-semibold">{{ empenho.orgao or '–' }}</div></div>
+      <div class="col-md-2"><span class="text-muted small">UASG:</span><div class="fw-semibold">{{ empenho.uasg or '–' }}</div></div>
+      <div class="col-md-2"><span class="text-muted small">Data Emissão:</span><div class="fw-semibold">{{ empenho.data_emissao | fmt_date or '–' }}</div></div>
+      <div class="col-md-5"><span class="text-muted small">Objeto:</span><div class="fw-semibold">{{ empenho.objeto or '–' }}</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Itens -->
+<div class="card shadow-sm mb-4">
+  <div class="card-header bg-white d-flex align-items-center justify-content-between">
+    <span class="fw-semibold">Itens do Empenho</span>
+    <a href="{{ url_for('item_novo', empenho_id=empenho.id) }}" class="btn btn-sm btn-success">
+      <i class="bi bi-plus-lg"></i>
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if empenho.itens %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Item</th>
+            <th>Und</th>
+            <th>Marca</th>
+            <th class="text-end">Qtd</th>
+            <th class="text-end">Vlr Venda</th>
+            <th class="text-end">Total Venda</th>
+            <th class="text-end">Vlr Custo</th>
+            <th class="text-end">Total Custo</th>
+            <th class="text-end">Lucro</th>
+            <th>Entrega</th>
+            <th>Obs</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for it in empenho.itens %}
+          <tr class="{{ 'custo-alto' if it.custo_maior_venda }}">
+            <td class="fw-semibold">{{ it.item_nome }}</td>
+            <td class="text-muted small">{{ it.unidade }}</td>
+            <td class="text-muted small">{{ it.marca or '–' }}</td>
+            <td class="text-end">{{ it.quantidade | int if it.quantidade == it.quantidade | int else it.quantidade }}</td>
+            <td class="text-end">{{ it.valor_venda | brl }}</td>
+            <td class="text-end fw-semibold">{{ it.valor_total_venda | brl }}</td>
+            <td class="text-end {{ 'text-danger fw-bold' if it.custo_maior_venda }}">{{ it.valor_custo | brl }}</td>
+            <td class="text-end">{{ it.valor_total_custo | brl }}</td>
+            <td class="text-end lucro-val {{ 'text-danger fw-bold' if it.lucro < 0 else 'text-success' }}">
+              {{ it.lucro | brl }}
+            </td>
+            <td>
+              <span class="badge rounded-pill
+                {% if it.situacao_entrega == 'ENTREGUE' %}badge-entregue
+                {% elif it.situacao_entrega == 'ENTREGUE PARCIAL' %}badge-parcial
+                {% else %}badge-falta{% endif %}" style="font-size:.7rem">
+                {{ it.situacao_entrega }}
+              </span>
+            </td>
+            <td style="max-width:180px;font-size:.78rem">{{ it.observacao or '' }}</td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('item_editar', id=it.id) }}" class="btn btn-xs btn-outline-secondary" style="padding:.2rem .4rem;font-size:.75rem" title="Editar"><i class="bi bi-pencil"></i></a>
+                <form method="post" action="{{ url_for('item_excluir', id=it.id) }}" onsubmit="return confirm('Excluir item?')">
+                  <button class="btn btn-xs btn-outline-danger" style="padding:.2rem .4rem;font-size:.75rem" title="Excluir"><i class="bi bi-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-light fw-bold">
+          <tr>
+            <td colspan="5" class="text-end">Totais:</td>
+            <td class="text-end">{{ empenho.total_venda | brl }}</td>
+            <td></td>
+            <td class="text-end">{{ empenho.total_custo | brl }}</td>
+            <td class="text-end {{ 'text-danger' if empenho.lucro_total < 0 else 'text-success' }}">{{ empenho.lucro_total | brl }}</td>
+            <td colspan="3"></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      Nenhum item cadastrado.
+      <a href="{{ url_for('item_novo', empenho_id=empenho.id) }}" class="btn btn-sm btn-success ms-2">Adicionar item</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Notas Fiscais -->
+<div class="card shadow-sm">
+  <div class="card-header bg-white d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-3">
+      <span class="fw-semibold">Notas Fiscais</span>
+      <span class="badge bg-warning text-dark">Pendente: {{ empenho.total_pendente | brl }}</span>
+      <span class="badge bg-success">Pago: {{ empenho.total_pago | brl }}</span>
+    </div>
+    <a href="{{ url_for('nota_nova', empenho_id=empenho.id) }}" class="btn btn-sm btn-primary">
+      <i class="bi bi-plus-lg"></i>
+    </a>
+  </div>
+  <div class="card-body p-0">
+    {% if empenho.notas_fiscais %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Nº NF</th>
+            <th>Item Referente</th>
+            <th class="text-end">Valor</th>
+            <th>Data</th>
+            <th>Situação</th>
+            <th>Obs</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for nf in empenho.notas_fiscais %}
+          <tr>
+            <td class="fw-semibold">{{ nf.numero or '–' }}</td>
+            <td class="small text-muted">{{ nf.item.item_nome if nf.item else '–' }}</td>
+            <td class="text-end fw-semibold">{{ nf.valor | brl }}</td>
+            <td class="small">{{ nf.data | fmt_date }}</td>
+            <td>
+              <span class="badge rounded-pill
+                {% if nf.situacao == 'PAGO' %}badge-pago
+                {% elif nf.situacao == 'CANCELADA' %}badge-cancelada
+                {% else %}badge-pendente{% endif %}">
+                {{ nf.situacao }}
+              </span>
+            </td>
+            <td style="font-size:.78rem">{{ nf.observacao or '' }}</td>
+            <td>
+              <div class="d-flex gap-1">
+                {% if nf.situacao == 'PENDENTE' %}
+                <button class="btn btn-xs btn-success btn-pagar" data-id="{{ nf.id }}"
+                        style="padding:.2rem .5rem;font-size:.75rem" title="Marcar como Pago">
+                  <i class="bi bi-check-lg"></i> Pago
+                </button>
+                {% endif %}
+                <a href="{{ url_for('nota_editar', id=nf.id) }}" class="btn btn-xs btn-outline-secondary"
+                   style="padding:.2rem .4rem;font-size:.75rem"><i class="bi bi-pencil"></i></a>
+                <form method="post" action="{{ url_for('nota_excluir', id=nf.id) }}" onsubmit="return confirm('Excluir NF?')">
+                  <button class="btn btn-xs btn-outline-danger" style="padding:.2rem .4rem;font-size:.75rem"><i class="bi bi-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-4 text-center text-muted">
+      Nenhuma nota fiscal cadastrada.
+      <a href="{{ url_for('nota_nova', empenho_id=empenho.id) }}" class="btn btn-sm btn-primary ms-2">Adicionar NF</a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.btn-pagar').forEach(btn => {
+  btn.addEventListener('click', function() {
+    if (!confirm('Confirmar pagamento desta nota fiscal?')) return;
+    fetch('/notas/' + this.dataset.id + '/pagar', { method: 'POST' })
+      .then(r => r.json())
+      .then(d => { if (d.ok) location.reload(); });
+  });
+});
+</script>
+{% endblock %}

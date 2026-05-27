@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}Agenda de Pregões{% endblock %}
+{% block page_title %}Agenda de Pregões{% endblock %}
+
+{% block topbar_actions %}
+  <a href="{{ url_for('pregao_novo') }}" class="btn btn-primary btn-sm">
+    <i class="bi bi-plus-lg me-1"></i>Novo Pregão
+  </a>
+{% endblock %}
+
+{% block content %}
+<div class="card shadow-sm">
+  <div class="card-header bg-white">
+    <form class="row g-2" method="get">
+      <div class="col-md-5">
+        <div class="input-group input-group-sm">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" name="q" class="form-control" placeholder="Buscar órgão, objeto, UASG…" value="{{ q }}">
+        </div>
+      </div>
+      <div class="col-md-3">
+        <select name="status" class="form-select form-select-sm">
+          <option value="">Todos os status</option>
+          {% for s in ['AGENDADO', 'PARTICIPANDO', 'GANHO', 'PERDIDO', 'CANCELADO'] %}
+          <option value="{{ s }}" {{ 'selected' if status == s }}>{{ s }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-outline-secondary btn-sm">Filtrar</button>
+        {% if q or status %}<a href="{{ url_for('pregoes_index') }}" class="btn btn-sm btn-link">Limpar</a>{% endif %}
+      </div>
+    </form>
+  </div>
+  <div class="card-body p-0">
+    {% if pregoes %}
+    <div class="table-responsive">
+      <table class="table table-hover mb-0 align-middle">
+        <thead class="table-light">
+          <tr>
+            <th>Data / Hora</th>
+            <th>Órgão</th>
+            <th>UASG</th>
+            <th>Objeto</th>
+            <th class="text-end">Valor</th>
+            <th>Atestado</th>
+            <th>Resp.</th>
+            <th>Status</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in pregoes %}
+          <tr>
+            <td class="fw-semibold small">{{ p.data_horario | fmt_datetime if p.data_horario else '–' }}</td>
+            <td>{{ p.orgao }}</td>
+            <td class="text-muted small">{{ p.uasg or '–' }}</td>
+            <td style="max-width:200px;font-size:.85rem">{{ p.objeto | truncate(60) if p.objeto }}</td>
+            <td class="text-end fw-semibold">{{ p.valor | brl if p.valor else '–' }}</td>
+            <td class="text-center">
+              {% if p.exige_atestado %}
+              <span class="badge bg-warning text-dark">Sim{% if p.percentagem_atestado %} {{ p.percentagem_atestado }}%{% endif %}</span>
+              {% else %}<span class="text-muted small">Não</span>{% endif %}
+            </td>
+            <td class="small">{{ p.responsavel or '–' }}</td>
+            <td>
+              <span class="badge rounded-pill
+                {% if p.status == 'GANHO' %}badge-ganho
+                {% elif p.status == 'PERDIDO' %}badge-perdido
+                {% elif p.status == 'AGENDADO' %}badge-agendado
+                {% else %}bg-secondary{% endif %}">{{ p.status }}</span>
+            </td>
+            <td>
+              <div class="d-flex gap-1">
+                <a href="{{ url_for('pregao_editar', id=p.id) }}" class="btn btn-xs btn-outline-secondary"
+                   style="padding:.2rem .4rem;font-size:.75rem"><i class="bi bi-pencil"></i></a>
+                <form method="post" action="{{ url_for('pregao_excluir', id=p.id) }}"
+                      onsubmit="return confirm('Excluir pregão?')">
+                  <button class="btn btn-xs btn-outline-danger"
+                          style="padding:.2rem .4rem;font-size:.75rem"><i class="bi bi-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="p-5 text-center text-muted">
+      <i class="bi bi-calendar-x display-4 d-block mb-3"></i>
+      Nenhum pregão encontrado.
+      <div class="mt-2">
+        <a href="{{ url_for('pregao_novo') }}" class="btn btn-primary btn-sm">Cadastrar pregão</a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

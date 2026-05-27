@@ -1,0 +1,112 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if pregao else 'Novo' }} Pregão{% endblock %}
+{% block page_title %}{{ 'Editar' if pregao else 'Novo' }} Pregão{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold">Dados do Pregão</div>
+      <div class="card-body">
+        <form method="post">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label fw-semibold">Órgão <span class="text-danger">*</span></label>
+              <input type="text" name="orgao" class="form-control" required
+                     value="{{ pregao.orgao if pregao else '' }}" placeholder="Ex: Tribunal de Contas">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">UASG</label>
+              <input type="text" name="uasg" class="form-control"
+                     value="{{ pregao.uasg if pregao else '' }}" placeholder="Ex: 929458">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Forma</label>
+              <select name="forma" class="form-select">
+                <option value="">–</option>
+                {% for f in ['Pregão Eletrônico', 'Pregão Presencial', 'Tomada de Preço', 'Concorrência', 'Dispensa'] %}
+                <option value="{{ f }}" {{ 'selected' if pregao and pregao.forma == f }}>{{ f }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-md-5">
+              <label class="form-label fw-semibold">Data e Horário da Sessão</label>
+              <input type="datetime-local" name="data_horario" class="form-control"
+                     value="{{ pregao.data_horario.strftime('%Y-%m-%dT%H:%M') if pregao and pregao.data_horario else '' }}">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Valor do Contrato (R$)</label>
+              <input type="number" step="0.01" name="valor" class="form-control"
+                     value="{{ pregao.valor if pregao else '' }}" placeholder="0,00">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label fw-semibold">Nº Itens / Lotes</label>
+              <input type="number" name="qtd_itens" class="form-control"
+                     value="{{ pregao.qtd_itens if pregao else '' }}" placeholder="0">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">Objeto do Contrato</label>
+              <textarea name="objeto" class="form-control" rows="2"
+                        placeholder="Descrição do objeto licitado">{{ pregao.objeto if pregao else '' }}</textarea>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Exige Atestado?</label>
+              <select name="exige_atestado" class="form-select">
+                <option value="0" {{ 'selected' if pregao and not pregao.exige_atestado }}>Não</option>
+                <option value="1" {{ 'selected' if pregao and pregao.exige_atestado }}>Sim</option>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">% do Atestado</label>
+              <input type="number" step="0.1" name="percentagem_atestado" class="form-control"
+                     value="{{ pregao.percentagem_atestado if pregao and pregao.percentagem_atestado else '' }}"
+                     placeholder="Ex: 10">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Exige Garantia?</label>
+              <select name="exige_garantia" class="form-select">
+                <option value="0" {{ 'selected' if pregao and not pregao.exige_garantia }}>Não</option>
+                <option value="1" {{ 'selected' if pregao and pregao.exige_garantia }}>Sim</option>
+              </select>
+            </div>
+
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Responsável pela Cotação</label>
+              <input type="text" name="responsavel" class="form-control"
+                     value="{{ pregao.responsavel if pregao else '' }}" placeholder="Nome">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Lote ou UND</label>
+              <input type="text" name="lote_ou_und" class="form-control"
+                     value="{{ pregao.lote_ou_und if pregao else '' }}" placeholder="Ex: Por Lote">
+            </div>
+            <div class="col-md-4">
+              <label class="form-label fw-semibold">Status</label>
+              <select name="status" class="form-select">
+                {% for s in ['AGENDADO', 'PARTICIPANDO', 'GANHO', 'PERDIDO', 'CANCELADO'] %}
+                <option value="{{ s }}" {{ 'selected' if pregao and pregao.status == s }}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">Observação</label>
+              <textarea name="observacao" class="form-control" rows="2">{{ pregao.observacao if pregao else '' }}</textarea>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 pt-3">
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>{{ 'Salvar' if pregao else 'Registrar Pregão' }}
+            </button>
+            <a href="{{ url_for('pregoes_index') }}" class="btn btn-outline-secondary">Cancelar</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

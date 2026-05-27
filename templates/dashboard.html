@@ -1,0 +1,220 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard – Licitações{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block topbar_actions %}
+  <span class="text-muted small" id="today-date"></span>
+{% endblock %}
+
+{% block content %}
+<!-- Stats row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="icon" style="background:#dbeafe;color:#1d4ed8"><i class="bi bi-receipt-cutoff"></i></div>
+        <div>
+          <div class="fw-bold fs-4">{{ total_empenhos }}</div>
+          <div class="text-muted small">Empenhos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="icon" style="background:#d1fae5;color:#065f46"><i class="bi bi-arrow-up-circle"></i></div>
+        <div>
+          <div class="fw-bold fs-5">{{ total_venda | brl }}</div>
+          <div class="text-muted small">Total de Vendas</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="icon" style="background:#fef9c3;color:#92400e"><i class="bi bi-hourglass-split"></i></div>
+        <div>
+          <div class="fw-bold fs-5">{{ total_pendente | brl }}</div>
+          <div class="text-muted small">A Receber (Pendente)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="icon" style="background:{% if lucro_total >= 0 %}#d1fae5;color:#065f46{% else %}#fee2e2;color:#991b1b{% endif %}"><i class="bi bi-graph-up"></i></div>
+        <div>
+          <div class="fw-bold fs-5 {% if lucro_total < 0 %}text-danger{% endif %}">{{ lucro_total | brl }}</div>
+          <div class="text-muted small">Lucro Total</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Second row -->
+<div class="row g-3 mb-4">
+  <div class="col-6 col-md-3">
+    <div class="card stat-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="icon" style="background:#d1fae5;color:#065f46"><i class="bi bi-check-circle"></i></div>
+        <div>
+          <div class="fw-bold fs-5">{{ total_pago | brl }}</div>
+          <div class="text-muted small">Total Recebido</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="icon" style="background:#fee2e2;color:#991b1b"><i class="bi bi-exclamation-triangle"></i></div>
+        <div>
+          <div class="fw-bold fs-4">{{ itens_custo_alto }}</div>
+          <div class="text-muted small">Itens c/ Custo Alto</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="icon" style="background:#dbeafe;color:#1d4ed8"><i class="bi bi-calendar-event"></i></div>
+        <div>
+          <div class="fw-bold fs-4">{{ pregoes_agendados }}</div>
+          <div class="text-muted small">Pregões Agendados</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-6 col-md-3">
+    <div class="card stat-card shadow-sm h-100">
+      <div class="card-body d-flex align-items-center gap-3">
+        <div class="icon" style="background:#fef9c3;color:#92400e"><i class="bi bi-truck"></i></div>
+        <div>
+          <div class="fw-bold fs-4">{{ itens_pendentes }}</div>
+          <div class="text-muted small">Entregas Pendentes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Chart -->
+  <div class="col-lg-7">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white fw-semibold">Notas Fiscais Emitidas (últimos meses)</div>
+      <div class="card-body">
+        <canvas id="chartNFs" height="120"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Próximos pregões -->
+  <div class="col-lg-5">
+    <div class="card shadow-sm h-100">
+      <div class="card-header bg-white d-flex align-items-center justify-content-between">
+        <span class="fw-semibold">Próximos Pregões</span>
+        <a href="{{ url_for('pregoes_index') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+      </div>
+      <div class="card-body p-0">
+        {% if pregoes_proximos %}
+        <ul class="list-group list-group-flush">
+          {% for p in pregoes_proximos %}
+          <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div>
+              <div class="fw-semibold small">{{ p.orgao }}</div>
+              <div class="text-muted" style="font-size:.78rem">{{ p.objeto | truncate(50) if p.objeto }}</div>
+            </div>
+            <div class="text-end">
+              <div class="small text-primary fw-semibold">{{ p.data_horario | fmt_datetime if p.data_horario }}</div>
+              <span class="badge badge-agendado rounded-pill">{{ p.status }}</span>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+        {% else %}
+        <div class="p-3 text-muted text-center small">Nenhum pregão agendado.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Empenhos recentes -->
+  <div class="col-12">
+    <div class="card shadow-sm">
+      <div class="card-header bg-white d-flex align-items-center justify-content-between">
+        <span class="fw-semibold">Empenhos Recentes</span>
+        <a href="{{ url_for('empenhos_index') }}" class="btn btn-sm btn-outline-primary">Ver todos</a>
+      </div>
+      <div class="card-body p-0">
+        {% if empenhos_recentes %}
+        <div class="table-responsive">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Nº Empenho</th><th>Órgão</th><th>Total Venda</th>
+                <th>Lucro</th><th>Situação</th><th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for e in empenhos_recentes %}
+              <tr>
+                <td class="fw-semibold">{{ e.numero }}</td>
+                <td>{{ e.orgao or '–' }}</td>
+                <td>{{ e.total_venda | brl }}</td>
+                <td class="{{ 'text-danger fw-bold' if e.lucro_total < 0 else 'text-success fw-bold' }}">{{ e.lucro_total | brl }}</td>
+                <td>
+                  {% set s = e.situacao_geral %}
+                  <span class="badge rounded-pill
+                    {% if s == 'ENTREGUE' %}badge-entregue
+                    {% elif s == 'ENTREGUE PARCIAL' %}badge-parcial
+                    {% elif s == 'FALTA ENTREGAR' %}badge-falta
+                    {% else %}bg-secondary{% endif %}">{{ s }}</span>
+                </td>
+                <td><a href="{{ url_for('empenho_detalhe', id=e.id) }}" class="btn btn-sm btn-outline-secondary">Ver</a></td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% else %}
+        <div class="p-3 text-muted text-center">Nenhum empenho cadastrado ainda.</div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('today-date').textContent = new Date().toLocaleDateString('pt-BR');
+const ctx = document.getElementById('chartNFs').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: {{ meses_labels | tojson }},
+    datasets: [{
+      label: 'Notas Fiscais (R$)',
+      data: {{ meses_venda | tojson }},
+      backgroundColor: 'rgba(37,99,235,.7)',
+      borderRadius: 6,
+    }]
+  },
+  options: {
+    responsive: true,
+    plugins: { legend: { display: false } },
+    scales: {
+      y: {
+        ticks: { callback: v => 'R$ ' + v.toLocaleString('pt-BR') }
+      }
+    }
+  }
+});
+</script>
+{% endblock %}
